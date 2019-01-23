@@ -7,14 +7,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EsiNet.Managers
+namespace EveOpenApi.Managers
 {
 	internal class CacheManager : BaseManager
 	{
 		Dictionary<string, EsiResponse> cache = new Dictionary<string, EsiResponse>();
 		RequestQueueAsync<EsiRequest, List<EsiResponse>> requestQueue;
 
-		public CacheManager(HttpClient client, EsiNet esiNet) : base(client, esiNet)
+		public CacheManager(HttpClient client, ESI esiNet) : base(client, esiNet)
 		{
 			requestQueue = new RequestQueueAsync<EsiRequest, List<EsiResponse>>(ProcessResponse);
 		}

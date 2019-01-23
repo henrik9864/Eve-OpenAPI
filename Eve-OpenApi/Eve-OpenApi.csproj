@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>7.1</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -11,6 +11,14 @@
     <Product />
     <Description>A library for accessing EVE online's ESI api.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <ApplicationIcon />
+    <StartupObject />
+    <RepositoryUrl>https://github.com/henrik9864/EsiNet</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/henrik9864/EsiNet/blob/master/LICENSE</PackageLicenseUrl>
+    <Copyright>(c) Henrik Strocka</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>EVE Esi</PackageTags>
+    <PackageId>Eve-OpenApi</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

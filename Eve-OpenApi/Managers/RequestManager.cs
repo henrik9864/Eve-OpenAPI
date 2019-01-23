@@ -6,11 +6,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EsiNet.Managers
+namespace EveOpenApi.Managers
 {
 	internal class RequestManager : BaseManager
 	{
-		public RequestManager(HttpClient client, EsiNet esiNet) : base(client, esiNet)
+		public RequestManager(HttpClient client, ESI esiNet) : base(client, esiNet)
 		{
 		}
 

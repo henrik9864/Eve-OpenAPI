@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace EsiNet.Managers
+namespace EveOpenApi.Managers
 {
 	internal class BaseManager
 	{
 		protected HttpClient Client { get; }
 
-		protected EsiNet EsiNet { get; }
+		protected ESI EsiNet { get; }
 
-		public BaseManager(HttpClient client, EsiNet esiNet)
+		public BaseManager(HttpClient client, ESI esiNet)
 		{
 			Client = client;
 			EsiNet = esiNet;

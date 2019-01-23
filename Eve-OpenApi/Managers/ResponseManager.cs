@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EsiNet.Managers
+namespace EveOpenApi.Managers
 {
 	internal class ResponseManager : BaseManager
 	{
@@ -16,7 +16,7 @@ namespace EsiNet.Managers
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, EsiNet esiNet) : base(client, esiNet)
+		public ResponseManager(HttpClient client, ESI esiNet) : base(client, esiNet)
 		{
 		}
 

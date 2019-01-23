@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EsiNet
+namespace EveOpenApi
 {
 	public class EveLogin
 	{

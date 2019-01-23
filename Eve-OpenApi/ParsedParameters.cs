@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EsiNet
+namespace EveOpenApi
 {
 	internal struct ParsedParameters
 	{

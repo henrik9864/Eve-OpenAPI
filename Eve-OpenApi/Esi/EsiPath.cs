@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace EsiNet
+namespace EveOpenApi
 {
 	public class EsiPath
 	{
 		public string Path { get; }
 
 		OpenApiPathItem pathItem;
-		EsiNet parent;
+		ESI parent;
 
-		public EsiPath(EsiNet parent, string path, OpenApiPathItem pathItem)
+		public EsiPath(ESI parent, string path, OpenApiPathItem pathItem)
 		{
 			Path = path;
 			this.pathItem = pathItem;

@@ -1,4 +1,4 @@
-﻿namespace EsiNet.Interfaces
+﻿namespace EveOpenApi.Interfaces
 {
 	public interface IAddOnlyScope : IReadOnlyScope
 	{

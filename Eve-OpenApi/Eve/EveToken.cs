@@ -1,5 +1,5 @@
-﻿using EsiNet.Eve;
-using EsiNet.Interfaces;
+﻿using EveOpenApi.Eve;
+using EveOpenApi.Interfaces;
 using Jose;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,7 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace EsiNet
+namespace EveOpenApi
 {
 	public class EveToken
 	{
