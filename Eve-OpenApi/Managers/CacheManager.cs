@@ -119,13 +119,18 @@ namespace EveOpenApi.Managers
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 			{
 				if (TryHitCache(request, i, out EsiResponse response))
+				{
 					esiResponses.Add(response);
+					break;
+				}
 
 				TryGetETag(request, i, out string eTag);
-				request.AddHeader("If-None-Match", eTag);
+				request.SetHeader("If-None-Match", eTag);
 
 				response = await EsiNet.ResponseManager.GetResponse(request, i);
-				SaveToCache(request, i, response);
+				if (response.Expired != default)
+					SaveToCache(request, i, response);
+
 				esiResponses.Add(response);
 			}
 

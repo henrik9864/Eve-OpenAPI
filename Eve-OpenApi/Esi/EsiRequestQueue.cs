@@ -27,19 +27,18 @@ namespace EveOpenApi
 
 		async void Loop()
 		{
-			requestAdded = new SemaphoreSlim(0, 1);
-
 			while (true)
 			{
-				if (requestQueue.Count == 0)
-				{
-					requestId = 0;
+				if (requestQueue.Count == 0 || requestAdded.CurrentCount == 1)
 					await requestAdded.WaitAsync();
+
+				(int id, T1 request) item;
+				lock (requestQueue)
+				{
+					item = requestQueue.Dequeue();
 				}
 
-				var item = requestQueue.Dequeue();
 				var response = await processMethod(item.request);
-
 				requestDone[item.id].SetResult(response);
 			}
 		}
@@ -53,11 +52,17 @@ namespace EveOpenApi
 		{
 			var tcs = new TaskCompletionSource<T2>();
 
-			requestQueue.Enqueue((requestId, request));
-			if (!requestDone.TryAdd(requestId, tcs))
-				requestDone[requestId] = tcs;
+			lock (requestAdded)
+			lock (requestQueue)
+			{
+				requestQueue.Enqueue((requestId, request));
+				if (!requestDone.TryAdd(requestId, tcs))
+					requestDone[requestId] = tcs;
 
-			requestAdded.Release();
+				if (requestQueue.Count == 1)
+					requestAdded.Release();
+			}
+
 			requestId++;
 			return requestId - 1;
 		}

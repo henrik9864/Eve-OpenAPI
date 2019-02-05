@@ -48,14 +48,20 @@ namespace EveOpenApi
 			Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
 		}
 
-		public void AddHeader(string name, string value)
+		public void SetHeader(string name, string value)
 		{
-			Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
+			var kvp = new KeyValuePair<string, List<string>>(name, new List<string> { value });
+			int kvpIndex = Parameters.Queries.FindIndex(a => a.Key == name);
+
+			if (kvpIndex > -1)
+				Parameters.Queries[kvpIndex] = kvp;
+			else
+				Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
 		}
 
 		T IndexOrLast<T>(List<T> list, int index)
 		{
-			if (list.Count >= index)
+			if (list.Count <= index)
 				return list[list.Count - 1];
 
 			return list[index];

@@ -42,7 +42,7 @@ namespace EveOpenApi.Managers
 			foreach (var item in request.Parameters.Headers)
 				requestMessage.Headers.Add(item.Key, item.Value);
 
-			// Throttle requests if users send too many.
+			// Throttle requests if users send too many errors.
 			if (errorRemain == 0 && errorReset > DateTime.Now)
 				await Task.Delay(errorReset - DateTime.Now);
 
@@ -55,7 +55,12 @@ namespace EveOpenApi.Managers
 			string expires = TryGetHeaderValue(response.Content.Headers, "expires");
 			string json = await response.Content.ReadAsStringAsync();
 
-			DateTime parsedExpiery = DateTime.ParseExact(expires, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+			DateTime parsedExpiery;
+			if (!string.IsNullOrEmpty(expires))
+				parsedExpiery = DateTime.ParseExact(expires, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+			else
+				parsedExpiery = default;
+
 			return new EsiResponse(eTag, json, parsedExpiery);
 		}
 

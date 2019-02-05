@@ -186,6 +186,8 @@ namespace EveOpenApi
 		/// <returns></returns>
 		static async Task<(string code, string state)> GetAuthResponse(string callback)
 		{
+			string htmlResponse = "<html><body style=\"background-color: grey\">You can close this page.</body></html>";
+
 			System.Collections.Specialized.NameValueCollection parameters;
 			using (HttpListener listener = new HttpListener())
 			{
@@ -194,9 +196,8 @@ namespace EveOpenApi
 
 				HttpListenerContext context = await listener.GetContextAsync();
 				using (Stream output = context.Response.OutputStream)
-				using (StreamReader reader = new StreamReader("Html/ResponsePage.html"))
 				{
-					byte[] buffer = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+					byte[] buffer = Encoding.UTF8.GetBytes(htmlResponse);
 
 					await output.WriteAsync(buffer, 0, buffer.Length);
 					await Task.Delay(buffer.Length); // Fix bug where page would not load on chrome :/
