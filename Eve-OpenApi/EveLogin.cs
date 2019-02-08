@@ -106,6 +106,21 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task SaveToFile(string filePath)
 		{
+			using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+			{
+				string jsonString = ToJson();
+				byte[] json = Encoding.UTF8.GetBytes(jsonString);
+
+				await fileStream.WriteAsync(json);
+			}
+		}
+
+		/// <summary>
+		/// Convert EveLogin to Json that can be loaded.
+		/// </summary>
+		/// <returns></returns>
+		public string ToJson()
+		{
 			Dictionary<string, List<string>> eveLoginSave = new Dictionary<string, List<string>>();
 			foreach (var user in userTokens)
 			{
@@ -116,14 +131,7 @@ namespace EveOpenApi
 				eveLoginSave.Add(user.Key, tokenSaves);
 			}
 
-			var toSave = (eveLoginSave, ClientID, Callback);
-			using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
-			{
-				string jsonString = JsonConvert.SerializeObject(toSave);
-				byte[] json = Encoding.UTF8.GetBytes(jsonString);
-
-				await fileStream.WriteAsync(json);
-			}
+			return JsonConvert.SerializeObject((eveLoginSave, ClientID, Callback));
 		}
 
 		/// <summary>
@@ -156,6 +164,18 @@ namespace EveOpenApi
 		}
 
 		/// <summary>
+		/// Create a empty EveLogin with no authenticated users.
+		/// </summary>
+		/// <param name="clientID"></param>
+		/// <param name="callback"></param>
+		/// <returns></returns>
+		public static async Task<EveLogin> Create(string clientID, string callback)
+		{
+			await Task.CompletedTask;
+			return new EveLogin(clientID, callback);
+		}
+
+		/// <summary>
 		/// Create a new EveLogin and add a token with scope.
 		/// </summary>
 		/// <param name="scope"></param>
@@ -170,7 +190,7 @@ namespace EveOpenApi
 			else
 				Client = new HttpClient();
 
-			EveLogin login = new EveLogin(clientID, callback);
+			EveLogin login = await Create(clientID, callback);
 			await login.AddToken(scope);
 
 			return login;
