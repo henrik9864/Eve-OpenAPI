@@ -78,3 +78,6 @@ EsiResponse<T> response = path.Get<T>("Character Name", ("character_id", "charac
 List<object> characterIDs = new List<object>() {"character id", "character id"};
 Lis<EsiResponse<T>> response = path.GetBatch<T>("Character Name", ("character_id", characterIDs));
 ```
+---
+
+EVE Online © 2019 [CCP hf.](https://www.ccpgames.com/)
