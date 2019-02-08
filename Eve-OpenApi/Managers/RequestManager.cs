@@ -1,4 +1,5 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using EveOpenApi.Esi;
+using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<EsiResponse>> RequestBatch(string path, string user, OperationType type, Dictionary<string, List<string>> parameters, OpenApiOperation operation)
+		public async Task<List<EsiResponse>> RequestBatch(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			EsiRequest request = GetRequest(path, user, type, parameters, operation);
 			return await EsiNet.CacheManager.GetResponse(request);
@@ -39,13 +40,13 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<EsiResponse<T>>> RequestBatch<T>(string path, string user, OperationType type, Dictionary<string, List<string>> parameters, OpenApiOperation operation)
+		public async Task<List<EsiResponse<T>>> RequestBatch<T>(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			EsiRequest request = GetRequest(path, user, type, parameters, operation);
 			return await EsiNet.CacheManager.GetResponse<T>(request);
 		}
 
-		EsiRequest GetRequest(string path, string user, OperationType type, Dictionary<string, List<string>> parameters, OpenApiOperation operation)
+		EsiRequest GetRequest(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters);
 			string esiBaseUrl = $"{EsiNet.Spec.Servers[0].Url}";
@@ -61,7 +62,7 @@ namespace EveOpenApi.Managers
 		/// <param name="operation"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		ParsedParameters ParseParameters(OpenApiOperation operation, Dictionary<string, List<string>> parameters)
+		ParsedParameters ParseParameters(OpenApiOperation operation, Dictionary<string, List<object>> parameters)
 		{
 			int maxLength = 1;
 			var queries = new List<KeyValuePair<string, List<string>>>();
@@ -70,7 +71,7 @@ namespace EveOpenApi.Managers
 
 			foreach (var item in operation.Parameters)
 			{
-				bool found = parameters.TryGetValue(item.Name, out List<string> value);
+				bool found = parameters.TryGetValue(item.Name, out List<object> value);
 
 				if (found)
 				{
@@ -79,16 +80,17 @@ namespace EveOpenApi.Managers
 					else if (maxLength > 1 && value.Count != maxLength)
 						throw new Exception("Every batch parameter must have 1 or the same count");
 
+					var kvp = new KeyValuePair<string, List<string>>(item.Name, value.Select(a => a.ToString()).ToList());
 					switch (item.In)
 					{
 						case ParameterLocation.Query:
-							queries.Add(new KeyValuePair<string, List<string>>(item.Name, value));
+							queries.Add(kvp);
 							break;
 						case ParameterLocation.Path:
-							pathParameters.Add(new KeyValuePair<string, List<string>>(item.Name, value));
+							pathParameters.Add(kvp);
 							break;
 						case ParameterLocation.Header:
-							headers.Add(new KeyValuePair<string, List<string>>(item.Name, value));
+							headers.Add(kvp);
 							break;
 						default:
 							break;

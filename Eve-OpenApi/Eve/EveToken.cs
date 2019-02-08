@@ -116,13 +116,41 @@ namespace EveOpenApi
 			if (httpClient != default && client == null)
 				client = httpClient;
 
+			var auth = Authenticate(scope, clientID, callback);
+			OpenUrl(auth.authUrl);
+
+			return await ValidateResponse(scope, callback, auth.state, auth.verifier, clientID);
+		}
+
+		/// <summary>
+		/// Generate authentication url, state and codeverifier
+		/// </summary>
+		/// <param name="scope"></param>
+		/// <param name="clientID"></param>
+		/// <param name="callback"></param>
+		/// <returns></returns>
+		public static (string authUrl, string state, string verifier) Authenticate(Scope scope, string clientID, string callback)
+		{
 			string state = RandomString(8);
 			string codeVerifier = GetCodeVerifier();
 			string codeChallenge = GenerateCodeChallenge(codeVerifier);
 
-			OpenAuthURL(scope, codeChallenge, state, callback, clientID);
-			var response = await GetAuthResponse(callback);
+			string authUrl = GetAuthURL(scope, codeChallenge, state, callback, clientID);
+			return (authUrl, state, codeVerifier);
+		}
 
+		/// <summary>
+		/// Wait for auth response after user har logged in.
+		/// </summary>
+		/// <param name="scope"></param>
+		/// <param name="callback"></param>
+		/// <param name="state"></param>
+		/// <param name="codeVerifier"></param>
+		/// <param name="clientID"></param>
+		/// <returns></returns>
+		public static async Task<EveToken> ValidateResponse(Scope scope, string callback, string state, string codeVerifier, string clientID)
+		{
+			var response = await GetAuthResponse(callback);
 			if (state != response.state)
 				throw new Exception("Response state not matching sent state.");
 
@@ -165,9 +193,9 @@ namespace EveOpenApi
 		/// <param name="state">Randomly generated state.</param>
 		/// <param name="callback">Where the auth request will send the user.</param>
 		/// <param name="clientID">Id of application</param>
-		static void OpenAuthURL(Scope scope, string codeChallenge, string state, string callback, string clientID)
+		static string GetAuthURL(Scope scope, string codeChallenge, string state, string callback, string clientID)
 		{
-			string authURL = $"https://login.eveonline.com/v2/oauth/authorize/?" +
+			return $"https://login.eveonline.com/v2/oauth/authorize/?" +
 				$"response_type=code" +
 				$"&redirect_uri={callback}" +
 				$"&client_id={clientID}" +
@@ -175,8 +203,6 @@ namespace EveOpenApi
 				$"&code_challenge={codeChallenge}" +
 				$"&code_challenge_method=S256" +
 				$"&state={state}";
-
-			OpenUrl(authURL);
 		}
 
 		/// <summary>

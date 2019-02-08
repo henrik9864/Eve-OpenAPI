@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EveOpenApi.Esi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -37,7 +38,7 @@ namespace EveOpenApi.Managers
 
 			List<EsiResponse<T>> returnResponses = new List<EsiResponse<T>>();
 			for (int i = 0; i < responses.Count; i++)
-				returnResponses.Add(new EsiResponse<T>(responses[i]));
+				returnResponses.Add(responses[i].ToType<T>());
 
 			return returnResponses;
 		}
@@ -56,6 +57,8 @@ namespace EveOpenApi.Managers
 
 				request.AddQuery("token", await token.GetToken());
 			}
+
+			request.SetHeader("X-User-Agent", EsiNet.Config.UserAgent);
 
 			return requestQueue.AddRequest(request);
 		}
@@ -128,7 +131,7 @@ namespace EveOpenApi.Managers
 				request.SetHeader("If-None-Match", eTag);
 
 				response = await EsiNet.ResponseManager.GetResponse(request, i);
-				if (response.Expired != default)
+				if (response.Expired != default && response.CacheControl == "Public" || response.CacheControl == "Private")
 					SaveToCache(request, i, response);
 
 				esiResponses.Add(response);

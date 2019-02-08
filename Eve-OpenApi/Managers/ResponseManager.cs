@@ -1,6 +1,8 @@
-﻿using System;
+﻿using EveOpenApi.Esi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -24,6 +26,7 @@ namespace EveOpenApi.Managers
 		{
 			HttpResponseMessage response = await GetHttpResponse(request, index);
 			EsiResponse esiResponse = await GetEsiResponse(response);
+
 			CheckLimit(response);
 			return esiResponse;
 		}
@@ -31,7 +34,7 @@ namespace EveOpenApi.Managers
 		public async Task<EsiResponse<T>> GetResponse<T>(EsiRequest request, int index)
 		{
 			EsiResponse esiResponse = await GetResponse(request, index);
-			return new EsiResponse<T>(esiResponse);
+			return esiResponse.ToType<T>();
 		}
 
 		public async Task<HttpResponseMessage> GetHttpResponse(EsiRequest request, int index)
@@ -53,6 +56,7 @@ namespace EveOpenApi.Managers
 		{
 			string eTag = TryGetHeaderValue(response.Headers, "etag");
 			string expires = TryGetHeaderValue(response.Content.Headers, "expires");
+			string cacheControl = TryGetHeaderValue(response.Content.Headers, "cache-control");
 			string json = await response.Content.ReadAsStringAsync();
 
 			DateTime parsedExpiery;
@@ -61,7 +65,13 @@ namespace EveOpenApi.Managers
 			else
 				parsedExpiery = default;
 
-			return new EsiResponse(eTag, json, parsedExpiery);
+			switch (response.StatusCode)
+			{
+				case HttpStatusCode.OK:
+					return new EsiResponse(eTag, json, parsedExpiery, cacheControl);
+				default:
+					return new EsiError(eTag, json, parsedExpiery, cacheControl, response.StatusCode);
+			}
 		}
 
 		void CheckLimit(HttpResponseMessage response)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace EveOpenApi
+namespace EveOpenApi.Esi
 {
 	internal class EsiRequest
 	{

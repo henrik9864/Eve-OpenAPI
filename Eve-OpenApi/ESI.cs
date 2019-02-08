@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Enums;
+using EveOpenApi.Esi;
 using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
@@ -29,11 +30,11 @@ namespace EveOpenApi
 
 		internal ResponseManager ResponseManager { get; }
 
-		internal EsiNetConfig Config { get; }
+		internal EsiConfig Config { get; }
 
 		#endregion
 
-		public ESI(EveLogin login, OpenApiDocument spec, EsiNetConfig config)
+		public ESI(EveLogin login, OpenApiDocument spec, EsiConfig config)
 		{
 			Login = login;
 			Spec = spec;
@@ -71,7 +72,7 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<ESI> Create(EsiVersion version, Datasource datasource, EveLogin login, HttpClient client = default, EsiNetConfig config = default)
+		public static Task<ESI> Create(EsiVersion version, Datasource datasource, EveLogin login, HttpClient client = default, EsiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}{version}/swagger.json?datasource={datasource}".ToLower();
@@ -87,14 +88,14 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<ESI> CreateVersioned(EsiVersion version, Datasource datasource, EveLogin login, HttpClient client = default, EsiNetConfig config = default)
+		public static Task<ESI> CreateVersioned(EsiVersion version, Datasource datasource, EveLogin login, HttpClient client = default, EsiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}_{version}/swagger.json?datasource={datasource}".ToLower();
 			return Create(specUrl, login, client, config);
 		}
 
-		static async Task<ESI> Create(string specUrl, EveLogin login, HttpClient client = default, EsiNetConfig config = default)
+		static async Task<ESI> Create(string specUrl, EveLogin login, HttpClient client = default, EsiConfig config = default)
 		{
 			if (Client == default && client != default)
 				Client = client;
@@ -102,7 +103,7 @@ namespace EveOpenApi
 				Client = new HttpClient();
 
 			if (config is null)
-				config = new EsiNetConfig();
+				config = new EsiConfig();
 
 			OpenApiDocument document = await SpecFromUrl(specUrl);
 			return new ESI(login, document, config);

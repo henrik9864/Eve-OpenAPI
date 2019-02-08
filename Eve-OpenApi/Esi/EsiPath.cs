@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace EveOpenApi
+namespace EveOpenApi.Esi
 {
 	public class EsiPath
 	{
@@ -29,7 +29,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse> Get(string user, params (string, string)[] parameters)
+		public Task<EsiResponse> Get(string user, params (string, object)[] parameters)
 		{
 			return Run(OperationType.Get, user, parameters);
 		}
@@ -40,7 +40,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> GetBatch(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse>> GetBatch(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch(OperationType.Get, user, parameters);
 		}
@@ -52,7 +52,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse<T>> Get<T>(string user, params (string, string)[] parameters)
+		public Task<EsiResponse<T>> Get<T>(string user, params (string, object)[] parameters)
 		{
 			return Run<T>(OperationType.Get, user, parameters);
 		}
@@ -64,7 +64,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse<T>>> GetBatch<T>(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse<T>>> GetBatch<T>(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch<T>(OperationType.Get, user, parameters);
 		}
@@ -79,7 +79,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse> Post(string user, params (string, string)[] parameters)
+		public Task<EsiResponse> Post(string user, params (string, object)[] parameters)
 		{
 			return Run(OperationType.Post, user, parameters);
 		}
@@ -90,7 +90,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> PostBatch(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse>> PostBatch(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch(OperationType.Post, user, parameters);
 		}
@@ -102,7 +102,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse<T>> Post<T>(string user, params (string, string)[] parameters)
+		public Task<EsiResponse<T>> Post<T>(string user, params (string, object)[] parameters)
 		{
 			return Run<T>(OperationType.Post, user, parameters);
 		}
@@ -114,7 +114,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse<T>>> PostBatch<T>(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse<T>>> PostBatch<T>(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch<T>(OperationType.Post, user, parameters);
 		}
@@ -129,7 +129,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse> Put(string user, params (string, string)[] parameters)
+		public Task<EsiResponse> Put(string user, params (string, object)[] parameters)
 		{
 			return Run(OperationType.Put, user, parameters);
 		}
@@ -140,7 +140,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> PutBatch(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse>> PutBatch(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch(OperationType.Put, user, parameters);
 		}
@@ -152,7 +152,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse<T>> Put<T>(string user, params (string, string)[] parameters)
+		public Task<EsiResponse<T>> Put<T>(string user, params (string, object)[] parameters)
 		{
 			return Run<T>(OperationType.Put, user, parameters);
 		}
@@ -164,7 +164,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse<T>>> PutBatch<T>(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse<T>>> PutBatch<T>(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch<T>(OperationType.Put, user, parameters);
 		}
@@ -179,7 +179,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse> Delete(string user, params (string, string)[] parameters)
+		public Task<EsiResponse> Delete(string user, params (string, object)[] parameters)
 		{
 			return Run(OperationType.Delete, user, parameters);
 		}
@@ -190,7 +190,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> DeleteBatch(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse>> DeleteBatch(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch(OperationType.Delete, user, parameters);
 		}
@@ -202,7 +202,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<EsiResponse<T>> Delete<T>(string user, params (string, string)[] parameters)
+		public Task<EsiResponse<T>> Delete<T>(string user, params (string, object)[] parameters)
 		{
 			return Run<T>(OperationType.Delete, user, parameters);
 		}
@@ -214,7 +214,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse<T>>> DeleteBatch<T>(string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse<T>>> DeleteBatch<T>(string user, params (string, List<object>)[] parameters)
 		{
 			return RunBatch<T>(OperationType.Delete, user, parameters);
 		}
@@ -230,7 +230,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> RunBatch(OperationType type, string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse>> RunBatch(OperationType type, string user, params (string, List<object>)[] parameters)
 		{
 			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => a.Item2 );
 			return RunBatch(type, user, convertedParameters);
@@ -243,9 +243,9 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public async Task<EsiResponse> Run(OperationType type, string user, params (string, string)[] parameters)
+		public async Task<EsiResponse> Run(OperationType type, string user, params (string, object)[] parameters)
 		{
-			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => new List<string> { a.Item2 });
+			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => new List<object> { a.Item2 });
 			return (await RunBatch(type, user, convertedParameters))[0];
 		}
 
@@ -257,7 +257,7 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse<T>>> RunBatch<T>(OperationType type, string user, params (string, List<string>)[] parameters)
+		public Task<List<EsiResponse<T>>> RunBatch<T>(OperationType type, string user, params (string, List<object>)[] parameters)
 		{
 			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => a.Item2);
 			return RunBatch<T>(type, user, convertedParameters);
@@ -271,21 +271,21 @@ namespace EveOpenApi
 		/// <param name="user"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		public async Task<EsiResponse<T>> Run<T>(OperationType type, string user, params (string, string)[] parameters)
+		public async Task<EsiResponse<T>> Run<T>(OperationType type, string user, params (string, object)[] parameters)
 		{
-			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => new List<string> { a.Item2 });
+			var convertedParameters = parameters.ToDictionary(a => a.Item1, a => new List<object> { a.Item2 });
 			return (await RunBatch<T>(type, user, convertedParameters))[0];
 		}
 
 		#endregion
 
-		async Task<List<EsiResponse>> RunBatch(OperationType type, string user, Dictionary<string, List<string>> parameters)
+		async Task<List<EsiResponse>> RunBatch(OperationType type, string user, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
 			return await parent.RequestManager.RequestBatch(Path, user, type, parameters, operation);
 		}
 
-		async Task<List<EsiResponse<T>>> RunBatch<T>(OperationType type, string user, Dictionary<string, List<string>> parameters)
+		async Task<List<EsiResponse<T>>> RunBatch<T>(OperationType type, string user, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
 			return await parent.RequestManager.RequestBatch<T>(Path, user, type, parameters, operation);

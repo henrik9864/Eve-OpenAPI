@@ -48,25 +48,30 @@ namespace EveOpenApi
 		}
 
 		/// <summary>
-		/// Create a new token with scope.
+		/// Create a new token with scope. (Auto opens URL in browser)
 		/// </summary>
 		/// <param name="scope"></param>
 		/// <returns></returns>
 		public async Task<EveToken> AddToken(Scope scope)
 		{
 			EveToken token = await EveToken.Create(scope, ClientID, Callback, Client);
-
-			if (userTokens.TryGetValue(token.Name, out List<EveToken> list))
-				list.Add(token);
-			else
-			{
-				list = new List<EveToken>();
-				list.Add(token);
-
-				userTokens.Add(token.Name, list);
-			}
+			AddToken(token);
 
 			return token;
+		}
+
+		/// <summary>
+		/// Create a new token with scope. (URL must be manually given to user)
+		/// </summary>
+		/// <param name="scope"></param>
+		/// <returns></returns>
+		public async Task<string> Authenticate(Scope scope)
+		{
+			var auth = EveToken.Authenticate(scope, ClientID, Callback);
+			AddEveReponse(scope, auth.state, auth.verifier);
+
+			await Task.CompletedTask;
+			return auth.authUrl;
 		}
 
 		/// <summary>
@@ -118,6 +123,35 @@ namespace EveOpenApi
 				byte[] json = Encoding.UTF8.GetBytes(jsonString);
 
 				await fileStream.WriteAsync(json);
+			}
+		}
+
+		/// <summary>
+		/// Get response from auth url and add the token.
+		/// </summary>
+		/// <param name="scope"></param>
+		/// <param name="state"></param>
+		/// <param name="verfier"></param>
+		async void AddEveReponse(Scope scope, string state, string verfier)
+		{
+			EveToken token = await EveToken.ValidateResponse(scope, Callback, state, verfier, ClientID);
+			AddToken(token);
+		}
+
+		/// <summary>
+		/// Add token to dictionary
+		/// </summary>
+		/// <param name="token"></param>
+		void AddToken(EveToken token)
+		{
+			if (userTokens.TryGetValue(token.Name, out List<EveToken> list))
+				list.Add(token);
+			else
+			{
+				list = new List<EveToken>();
+				list.Add(token);
+
+				userTokens.Add(token.Name, list);
 			}
 		}
 
