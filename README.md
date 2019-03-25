@@ -6,7 +6,7 @@ A library for accessing EVE online's ESI api.
 ### Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.1.3
+Install-Package Eve-OpenApi -Version 0.1.4
 ```
 
 ### Example
@@ -49,7 +49,6 @@ There is two ways to save a EveLogin. The SaveToFile method automaticly writes i
 ```cs
 // Let EveLogin handle file manipulation
 string FilePath = "path to your save file";
-await login.SaveToFile(FilePath);
 
 // Do it yourself
 string json = await login.ToJson(FilePath);
@@ -67,16 +66,16 @@ ESI esi = await ESI.Create(EsiVersion.Latest, Datasource.Tranquility, login, cli
 #### Retrive data from ESI
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
-EsiPath path = await esi.Path("/characters/{character_id}/mail/");
+EsiPath path = esi.Path("/characters/{character_id}/mail/");
 
-EsiResponse response = path.Get("Character Name", ("character_id", "character id"));
+EsiResponse response = await path.Get("Character Name", ("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-EsiResponse<T> response = path.Get<T>("Character Name", ("character_id", "character id"));
+EsiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
 
 // If you want to do a batch request to for multiple characters use GetBatch
 List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<EsiResponse<T>> response = path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+Lis<EsiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
 ```
 ---
 
