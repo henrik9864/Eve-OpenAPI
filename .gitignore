@@ -7,11 +7,10 @@
 *.userosscache
 *.sln.docstates
 
-#User-specified files
-EsiNet/Program.cs
-
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+Eve-OpenApi.Examples/Program.cs
+Eve-OpenApi.Examples/Structs/Credentials.cs
 
 # Build results
 [Dd]ebug/

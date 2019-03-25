@@ -18,7 +18,7 @@ namespace EveOpenApi.Managers
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, ESI esiNet) : base(client, esiNet)
+		public ResponseManager(HttpClient client, OpenApiInterface esiNet) : base(client, esiNet)
 		{
 		}
 

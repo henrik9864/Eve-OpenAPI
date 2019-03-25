@@ -17,7 +17,7 @@ using System.Web;
 
 namespace EveOpenApi
 {
-	public class EveToken
+	public class EveToken : IToken
 	{
 		static HttpClient client;
 
@@ -50,7 +50,7 @@ namespace EveOpenApi
 
 		internal JwtToken Token { get; }
 
-		private EveToken(EveCredentials credential, JwtToken token, Scope scope)
+		private EveToken(EveCredentials credential, JwtToken token, IScope scope)
 		{
 			Scope = scope;
 			Token = token;
@@ -66,7 +66,7 @@ namespace EveOpenApi
 		/// </summary>
 		/// <param name="subset"></param>
 		/// <returns></returns>
-		public async Task RefreshToken(Scope subset = default)
+		public async Task RefreshToken(IScope subset = default)
 		{
 			if (subset == default)
 				subset = (Scope)Scope;
@@ -111,7 +111,7 @@ namespace EveOpenApi
 		/// <param name="callback"></param>
 		/// <param name="httpClient"></param>
 		/// <returns></returns>
-		public static async Task<EveToken> Create(Scope scope, string clientID, string callback, HttpClient httpClient = default)
+		internal static async Task<EveToken> Create(IScope scope, string clientID, string callback, HttpClient httpClient = default)
 		{
 			if (httpClient != default && client == null)
 				client = httpClient;
@@ -129,7 +129,7 @@ namespace EveOpenApi
 		/// <param name="clientID"></param>
 		/// <param name="callback"></param>
 		/// <returns></returns>
-		public static (string authUrl, string state, string verifier) Authenticate(Scope scope, string clientID, string callback)
+		internal static (string authUrl, string state, string verifier) Authenticate(IScope scope, string clientID, string callback)
 		{
 			string state = RandomString(8);
 			string codeVerifier = GetCodeVerifier();
@@ -148,7 +148,7 @@ namespace EveOpenApi
 		/// <param name="codeVerifier"></param>
 		/// <param name="clientID"></param>
 		/// <returns></returns>
-		public static async Task<EveToken> ValidateResponse(Scope scope, string callback, string state, string codeVerifier, string clientID)
+		internal static async Task<EveToken> ValidateResponse(IScope scope, string callback, string state, string codeVerifier, string clientID)
 		{
 			var response = await GetAuthResponse(callback);
 			if (state != response.state)
@@ -156,9 +156,6 @@ namespace EveOpenApi
 
 			EveCredentials credential = await RetriveCredentials(response.code, codeVerifier, clientID);
 			JwtToken token = await ValidateCredentials(credential);
-
-			if (!scope.Validate((List<string>)scope.Scopes))
-				throw new Exception("Eve not returning expected scopes.");
 
 			return new EveToken(credential, token, scope);
 		}
@@ -168,7 +165,7 @@ namespace EveOpenApi
 		/// </summary>
 		/// <param name="json"></param>
 		/// <returns></returns>
-		public static async Task<EveToken> FromJson(string json, HttpClient httpClient = default)
+		internal static async Task<EveToken> FromJson(string json, HttpClient httpClient = default)
 		{
 			if (httpClient != default && client == null)
 				client = httpClient;
@@ -193,7 +190,7 @@ namespace EveOpenApi
 		/// <param name="state">Randomly generated state.</param>
 		/// <param name="callback">Where the auth request will send the user.</param>
 		/// <param name="clientID">Id of application</param>
-		static string GetAuthURL(Scope scope, string codeChallenge, string state, string callback, string clientID)
+		static string GetAuthURL(IScope scope, string codeChallenge, string state, string callback, string clientID)
 		{
 			return $"https://login.eveonline.com/v2/oauth/authorize/?" +
 				$"response_type=code" +
@@ -311,7 +308,7 @@ namespace EveOpenApi
 		/// <param name="refreshToken"></param>
 		/// <param name="clientID"></param>
 		/// <returns></returns>
-		static async Task<EveCredentials> RefreshToken(Scope scope, string refreshToken, string clientID, HttpClient client)
+		static async Task<EveCredentials> RefreshToken(IScope scope, string refreshToken, string clientID, HttpClient client)
 		{
 			string refreshUrl = $"https://login.eveonline.com/v2/oauth/token/";
 

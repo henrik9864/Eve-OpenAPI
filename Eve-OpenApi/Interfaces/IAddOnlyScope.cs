@@ -2,6 +2,6 @@
 {
 	public interface IAddOnlyScope : IReadOnlyScope
 	{
-		void AddScope(Scope scope);
+		void AddScope(IScope scope);
 	}
 }

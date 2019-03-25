@@ -13,6 +13,13 @@ namespace EveOpenApi.Interfaces
 
 		IReadOnlyList<string> Scopes { get; }
 
-		bool HasScope(Scope scope);
+		/// <summary>
+		/// Check if <paramref name="scope"/> is a subset of this scope.
+		/// </summary>
+		/// <param name="scope"></param>
+		/// <returns></returns>
+		bool IsSubset(IScope scope);
+
+		bool Equals(IScope other);
 	}
 }

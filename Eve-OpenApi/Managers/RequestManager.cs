@@ -11,7 +11,7 @@ namespace EveOpenApi.Managers
 {
 	internal class RequestManager : BaseManager
 	{
-		public RequestManager(HttpClient client, ESI esiNet) : base(client, esiNet)
+		public RequestManager(HttpClient client, OpenApiInterface esiNet) : base(client, esiNet)
 		{
 		}
 
@@ -24,9 +24,9 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<EsiResponse>> RequestBatch(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public async Task<List<EsiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
-			EsiRequest request = GetRequest(path, user, type, parameters, operation);
+			EsiRequest request = GetRequest(path, type, parameters, operation);
 			return await EsiNet.CacheManager.GetResponse(request);
 		}
 
@@ -40,20 +40,20 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<EsiResponse<T>>> RequestBatch<T>(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public async Task<List<EsiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
-			EsiRequest request = GetRequest(path, user, type, parameters, operation);
+			EsiRequest request = GetRequest(path, type, parameters, operation);
 			return await EsiNet.CacheManager.GetResponse<T>(request);
 		}
 
-		EsiRequest GetRequest(string path, string user, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		EsiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters);
 			string esiBaseUrl = $"{EsiNet.Spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 
-			return new EsiRequest(esiBaseUrl, path, user, scope, httpMethod, parsed);
+			return new EsiRequest(esiBaseUrl, path, scope, httpMethod, parsed);
 		}
 
 		/// <summary>

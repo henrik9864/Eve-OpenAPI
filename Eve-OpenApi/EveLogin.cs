@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EveOpenApi.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi
 {
-	public class EveLogin
+	public class EveLogin : ILogin
 	{
 		private static HttpClient Client { get; set; }
 
@@ -17,34 +18,23 @@ namespace EveOpenApi
 
 		public string Callback { get; }
 
-		public IReadOnlyList<EveToken> this[string user]
+		public IToken this[string scope]
 		{
 			get
 			{
-				return userTokens[user];
+				return GetToken((Scope)scope);
 			}
 		}
 
-		public EveToken this[string user, string scope]
-		{
-			get
-			{
-				List<EveToken> tokens = userTokens[user];
-				EveToken token = tokens.Find(a => a.Scope.HasScope(scope));
+		public string CurrentUser { get; private set; }
 
-				if (token == null)
-					throw new Exception($"No found with: {scope}");
-
-				return token;
-			}
-		}
-
-		private Dictionary<string, List<EveToken>> userTokens = new Dictionary<string, List<EveToken>>();
+		Dictionary<string, List<IToken>> userTokens { get; }
 
 		private EveLogin(string clientID, string callback)
 		{
 			ClientID = clientID;
 			Callback = callback;
+			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
 		/// <summary>
@@ -52,10 +42,13 @@ namespace EveOpenApi
 		/// </summary>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		public async Task<EveToken> AddToken(Scope scope)
+		public async Task<IToken> AddToken(IScope scope)
 		{
 			EveToken token = await EveToken.Create(scope, ClientID, Callback, Client);
 			AddToken(token);
+
+			if (string.IsNullOrEmpty(CurrentUser))
+				CurrentUser = token.Name;
 
 			return token;
 		}
@@ -65,10 +58,10 @@ namespace EveOpenApi
 		/// </summary>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		public async Task<string> Authenticate(Scope scope)
+		public async Task<string> GetAuthURL(IScope scope)
 		{
 			var auth = EveToken.Authenticate(scope, ClientID, Callback);
-			AddEveReponse(scope, auth.state, auth.verifier);
+			AddResponse(scope, auth.state, auth.verifier);
 
 			await Task.CompletedTask;
 			return auth.authUrl;
@@ -81,12 +74,22 @@ namespace EveOpenApi
 		/// <param name="scope"></param>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		public bool TryGetToken(string user, string scope, out EveToken token)
+		public bool TryGetToken(IScope scope, out IToken token)
 		{
-			userTokens.TryGetValue(user, out List<EveToken> tokens);
+			userTokens.TryGetValue(CurrentUser, out List<IToken> tokens);
 
-			token = tokens?.Find(a => a.Scope.HasScope(scope));
+			token = tokens?.Find(a => a.Scope.IsSubset(scope));
 			return token != null;
+		}
+
+		public IToken GetToken(IScope scope)
+		{
+			IToken token = userTokens[CurrentUser].Find(a => a == scope);
+
+			if (token == null)
+				throw new Exception($"No token with scope '{scope}' found");
+
+			return token;
 		}
 
 		/// <summary>
@@ -126,7 +129,7 @@ namespace EveOpenApi
 			{
 				List<string> tokenSaves = new List<string>();
 				foreach (var token in user.Value)
-					tokenSaves.Add(token.ToJson());
+					tokenSaves.Add(((EveToken)token).ToJson());
 
 				eveLoginSave.Add(user.Key, tokenSaves);
 			}
@@ -140,7 +143,7 @@ namespace EveOpenApi
 		/// <param name="scope"></param>
 		/// <param name="state"></param>
 		/// <param name="verfier"></param>
-		async void AddEveReponse(Scope scope, string state, string verfier)
+		async void AddResponse(IScope scope, string state, string verfier)
 		{
 			EveToken token = await EveToken.ValidateResponse(scope, Callback, state, verfier, ClientID);
 			AddToken(token);
@@ -152,27 +155,15 @@ namespace EveOpenApi
 		/// <param name="token"></param>
 		void AddToken(EveToken token)
 		{
-			if (userTokens.TryGetValue(token.Name, out List<EveToken> list))
+			if (userTokens.TryGetValue(token.Name, out List<IToken> list))
 				list.Add(token);
 			else
 			{
-				list = new List<EveToken>();
+				list = new List<IToken>();
 				list.Add(token);
 
 				userTokens.Add(token.Name, list);
 			}
-		}
-
-		/// <summary>
-		/// Create a empty EveLogin with no authenticated users.
-		/// </summary>
-		/// <param name="clientID"></param>
-		/// <param name="callback"></param>
-		/// <returns></returns>
-		public static async Task<EveLogin> Create(string clientID, string callback)
-		{
-			await Task.CompletedTask;
-			return new EveLogin(clientID, callback);
 		}
 
 		/// <summary>
@@ -190,7 +181,7 @@ namespace EveOpenApi
 			else
 				Client = new HttpClient();
 
-			EveLogin login = await Create(clientID, callback);
+			EveLogin login = new EveLogin(clientID, callback);
 			await login.AddToken(scope);
 
 			return login;
@@ -217,9 +208,10 @@ namespace EveOpenApi
 			}
 
 			EveLogin login = new EveLogin(loaded.clientID, loaded.callback);
+			login.CurrentUser = loaded.eveLoginSave?.FirstOrDefault().Key;
 			foreach (var user in loaded.eveLoginSave)
 			{
-				List<EveToken> tokens = new List<EveToken>();
+				List<IToken> tokens = new List<IToken>();
 
 				foreach (var token in user.Value)
 					tokens.Add(await EveToken.FromJson(token, Client));

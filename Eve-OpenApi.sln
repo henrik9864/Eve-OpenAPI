@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eve-OpenApi", "Eve-OpenApi\Eve-OpenApi.csproj", "{EE7116E3-11DE-4D36-9A0F-BCFEED26F66E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eve-OpenApi.Test", "Eve-OpenApi.Test\Eve-OpenApi.Test.csproj", "{386D4834-B580-408F-8D1D-60CA5A8192E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve-OpenApi.Examples", "Eve-OpenApi.Examples\Eve-OpenApi.Examples.csproj", "{7E257605-2857-4D4D-AE3A-D54C6AFC3892}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{EE7116E3-11DE-4D36-9A0F-BCFEED26F66E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE7116E3-11DE-4D36-9A0F-BCFEED26F66E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE7116E3-11DE-4D36-9A0F-BCFEED26F66E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{386D4834-B580-408F-8D1D-60CA5A8192E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{386D4834-B580-408F-8D1D-60CA5A8192E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{386D4834-B580-408F-8D1D-60CA5A8192E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{386D4834-B580-408F-8D1D-60CA5A8192E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E257605-2857-4D4D-AE3A-D54C6AFC3892}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E257605-2857-4D4D-AE3A-D54C6AFC3892}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E257605-2857-4D4D-AE3A-D54C6AFC3892}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E257605-2857-4D4D-AE3A-D54C6AFC3892}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

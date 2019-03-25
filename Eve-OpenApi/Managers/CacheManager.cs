@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Esi;
+using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace EveOpenApi.Managers
 		Dictionary<string, EsiResponse> cache = new Dictionary<string, EsiResponse>();
 		RequestQueueAsync<EsiRequest, List<EsiResponse>> requestQueue;
 
-		public CacheManager(HttpClient client, ESI esiNet) : base(client, esiNet)
+		public CacheManager(HttpClient client, OpenApiInterface esiNet) : base(client, esiNet)
 		{
 			requestQueue = new RequestQueueAsync<EsiRequest, List<EsiResponse>>(ProcessResponse);
 		}
@@ -45,18 +46,16 @@ namespace EveOpenApi.Managers
 
 		async Task<int> AddToRequestQueue(EsiRequest request)
 		{
-			if (!string.IsNullOrEmpty(request.Scope))
+			if (!EsiNet.Login.TryGetToken((Scope)request.Scope, out IToken token))
 			{
-				if (!EsiNet.Login.TryGetToken(request.User, request.Scope, out EveToken token))
-				{
-					if (EsiNet.Config.AutoRequestScope)
-						token = await EsiNet.Login.AddToken(request.Scope);
-					else
-						throw new Exception($"No token with scope '{request.Scope}'");
-				}
-
-				request.AddQuery("token", await token.GetToken());
+				if (EsiNet.Config.AutoRequestScope)
+					token = await EsiNet.Login.AddToken((Scope)request.Scope);
+				else
+					throw new Exception($"No token with scope '{request.Scope}'");
 			}
+
+			request.AddQuery("token", await token.GetToken());
+			request.SetHeader("X-Token", await token.GetToken());
 
 			request.SetHeader("X-User-Agent", EsiNet.Config.UserAgent);
 

@@ -12,19 +12,16 @@ namespace EveOpenApi.Esi
 
 		public string Path { get; }
 
-		public string User { get; }
-
 		public string Scope { get; }
 
 		public HttpMethod Method { get; }
 
 		public ParsedParameters Parameters { get; }
 
-		public EsiRequest(string baseUrl, string path, string user, string scope, HttpMethod method, ParsedParameters parametesr)
+		public EsiRequest(string baseUrl, string path, string scope, HttpMethod method, ParsedParameters parametesr)
 		{
 			BaseUrl = baseUrl;
 			Path = path;
-			User = user;
 			Scope = scope;
 			Method = method;
 			Parameters = parametesr;
@@ -51,12 +48,12 @@ namespace EveOpenApi.Esi
 		public void SetHeader(string name, string value)
 		{
 			var kvp = new KeyValuePair<string, List<string>>(name, new List<string> { value });
-			int kvpIndex = Parameters.Queries.FindIndex(a => a.Key == name);
+			int kvpIndex = Parameters.Headers.FindIndex(a => a.Key == name);
 
 			if (kvpIndex > -1)
-				Parameters.Queries[kvpIndex] = kvp;
+				Parameters.Headers[kvpIndex] = kvp;
 			else
-				Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
+				Parameters.Headers.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
 		}
 
 		T IndexOrLast<T>(List<T> list, int index)

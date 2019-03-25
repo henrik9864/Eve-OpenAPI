@@ -15,9 +15,16 @@ namespace EveOpenApi.Esi
 		internal EsiError(string eTag, string response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
 			: base(eTag, response, expired, cacheControl)
 		{
-			dynamic jObj = JsonConvert.DeserializeObject(base.Response);
+			if (response[0] == '{')
+			{
+				dynamic jObj = JsonConvert.DeserializeObject(base.Response);
+				Error = jObj.error;
+			}
+			else
+			{
+				Error = response;
+			}
 
-			Error = jObj.error;
 			StatusCode = statusCode;
 		}
 

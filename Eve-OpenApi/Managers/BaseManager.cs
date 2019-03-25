@@ -9,9 +9,9 @@ namespace EveOpenApi.Managers
 	{
 		protected HttpClient Client { get; }
 
-		protected ESI EsiNet { get; }
+		protected OpenApiInterface EsiNet { get; }
 
-		public BaseManager(HttpClient client, ESI esiNet)
+		public BaseManager(HttpClient client, OpenApiInterface esiNet)
 		{
 			Client = client;
 			EsiNet = esiNet;

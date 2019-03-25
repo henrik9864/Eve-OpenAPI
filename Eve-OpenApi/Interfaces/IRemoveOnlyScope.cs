@@ -2,6 +2,6 @@
 {
 	public interface IRemoveOnlyScope : IReadOnlyScope
 	{
-		void RemoveScope(Scope scope);
+		void RemoveScope(IScope scope);
 	}
 }
