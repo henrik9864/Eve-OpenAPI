@@ -10,6 +10,8 @@ namespace EveOpenApi.Interfaces
 	/// </summary>
     public interface ILogin
 	{
+		IInterfaceSetup Setup { get; }
+
 		IToken this[string scope] { get; }
 
 		bool TryGetToken(IScope scope, out IToken token);

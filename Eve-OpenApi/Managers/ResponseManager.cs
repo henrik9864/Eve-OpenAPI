@@ -27,7 +27,7 @@ namespace EveOpenApi.Managers
 			HttpResponseMessage response = await GetHttpResponse(request, index);
 			EsiResponse esiResponse = await GetEsiResponse(response);
 
-			CheckLimit(response);
+			CheckRateLimit(response);
 			return esiResponse;
 		}
 
@@ -46,8 +46,13 @@ namespace EveOpenApi.Managers
 				requestMessage.Headers.Add(item.Key, item.Value);
 
 			// Throttle requests if users send too many errors.
-			if (errorRemain == 0 && errorReset > DateTime.Now)
-				await Task.Delay(errorReset - DateTime.Now);
+			if (errorRemain <= 0 && errorReset > DateTime.Now)
+			{
+				if (EsiNet.Config.RateLimitThrotle)
+					await Task.Delay(errorReset - DateTime.Now);
+				else
+					throw new Exception("Rate limit reached.");
+			}
 
 			return await Client.SendAsync(requestMessage);
 		}
@@ -74,7 +79,7 @@ namespace EveOpenApi.Managers
 			}
 		}
 
-		void CheckLimit(HttpResponseMessage response)
+		void CheckRateLimit(HttpResponseMessage response)
 		{
 			string errorRemainString = TryGetHeaderValue(response.Headers, "x-esi-error-limit-remain");
 			string errorResetString = TryGetHeaderValue(response.Headers, "x-esi-error-limit-reset");

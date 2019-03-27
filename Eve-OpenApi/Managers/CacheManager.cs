@@ -26,22 +26,33 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public async Task<List<EsiResponse>> GetResponse(EsiRequest request)
+		public Task<List<EsiResponse>> GetResponse(EsiRequest request)
 		{
-			int id = await AddToRequestQueue(request);
-			return await requestQueue.AwaitResponse(id);
+			return ExecuteRequest(request);
 		}
 
 		public async Task<List<EsiResponse<T>>> GetResponse<T>(EsiRequest request)
 		{
-			int id = await AddToRequestQueue(request);
-			List<EsiResponse> responses = await requestQueue.AwaitResponse(id);
+			List<EsiResponse> responses = await ExecuteRequest(request);
 
 			List<EsiResponse<T>> returnResponses = new List<EsiResponse<T>>();
 			for (int i = 0; i < responses.Count; i++)
 				returnResponses.Add(responses[i].ToType<T>());
 
 			return returnResponses;
+		}
+
+		async Task<List<EsiResponse>> ExecuteRequest(EsiRequest request)
+		{
+			if (EsiNet.Config.UseInternalLoop)
+			{
+				int id = await AddToRequestQueue(request);
+				return await requestQueue.AwaitResponse(id);
+			}
+			else
+			{
+				return await ProcessResponse(request);
+			}
 		}
 
 		async Task<int> AddToRequestQueue(EsiRequest request)
@@ -54,8 +65,20 @@ namespace EveOpenApi.Managers
 					throw new Exception($"No token with scope '{request.Scope}'");
 			}
 
-			request.AddQuery("token", await token.GetToken());
-			request.SetHeader("X-Token", await token.GetToken());
+			switch (EsiNet.Login.Setup.TokenLocation)
+			{
+				case "header":
+					request.SetHeader(EsiNet.Login.Setup.TokenName, await token.GetToken());
+					break;
+				case "query":
+					request.AddQuery(EsiNet.Login.Setup.TokenName, await token.GetToken());
+					break;
+				default:
+					throw new Exception("Unknwon access token location");
+			}
+
+			if (string.IsNullOrEmpty(EsiNet.Config.UserAgent))
+				throw new Exception("User-Agent must be set.");
 
 			request.SetHeader("X-User-Agent", EsiNet.Config.UserAgent);
 

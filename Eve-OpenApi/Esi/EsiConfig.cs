@@ -12,6 +12,16 @@ namespace EveOpenApi.Esi
 		public bool AutoRequestScope { get; set; } = false;
 
 		/// <summary>
+		/// Use an internal background loop to regulate requests.
+		/// </summary>
+		public bool UseInternalLoop { get; set; } = true;
+
+		/// <summary>
+		/// Whether to throttle requests or throw exception when rate limit has been reached.
+		/// </summary>
+		public bool RateLimitThrotle { get; set; } = true;
+
+		/// <summary>
 		/// User agent to send to ESI.
 		/// </summary>
 		public string UserAgent { get; set; }

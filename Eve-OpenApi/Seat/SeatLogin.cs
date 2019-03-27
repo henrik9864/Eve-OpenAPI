@@ -8,6 +8,8 @@ namespace EveOpenApi.Seat
 {
 	public class SeatLogin : ILogin
 	{
+		public IInterfaceSetup Setup { get; }
+
 		public IToken this[string scope]
 		{
 			get
@@ -20,6 +22,7 @@ namespace EveOpenApi.Seat
 
 		public SeatLogin(string token)
 		{
+			Setup = new SeatInterfaceSetup();
 			tokens = new List<IToken>();
 			tokens.Add(new SeatToken(token));
 		}
@@ -43,7 +46,7 @@ namespace EveOpenApi.Seat
 		public async Task<IToken> AddToken(IScope scope)
 		{
 			await Task.CompletedTask;
-			return GetToken(scope);
+			throw new Exception("Unable to create a new SeAT token");
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Interfaces;
+﻿using EveOpenApi.Eve;
+using EveOpenApi.Interfaces;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,8 @@ namespace EveOpenApi
 	public class EveLogin : ILogin
 	{
 		private static HttpClient Client { get; set; }
+
+		public IInterfaceSetup Setup { get; }
 
 		public string ClientID { get; }
 
@@ -34,6 +37,7 @@ namespace EveOpenApi
 		{
 			ClientID = clientID;
 			Callback = callback;
+			Setup = new EveInterfaceSetup();
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 

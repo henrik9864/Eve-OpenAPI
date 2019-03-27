@@ -20,6 +20,7 @@ namespace EveOpenApi.Esi
 			ETag = eTag;
 			Response = response;
 			Expired = expired;
+			CacheControl = cacheControl;
 		}
 
 		public virtual EsiResponse<T> ToType<T>()
