@@ -1,4 +1,4 @@
-﻿using EveOpenApi.Esi;
+﻿using EveOpenApi.Api;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,31 +13,31 @@ namespace EveOpenApi.Managers
 {
 	internal class ResponseManager : BaseManager
 	{
-		public event Action<int, EsiResponse> RequestFinished;
+		public event Action<int, ApiResponse> RequestFinished;
 
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, OpenApiInterface esiNet) : base(client, esiNet)
+		public ResponseManager(HttpClient client, API esiNet) : base(client, esiNet)
 		{
 		}
 
-		public async Task<EsiResponse> GetResponse(EsiRequest request, int index)
+		public async Task<ApiResponse> GetResponse(ApiRequest request, int index)
 		{
 			HttpResponseMessage response = await GetHttpResponse(request, index);
-			EsiResponse esiResponse = await GetEsiResponse(response);
+			ApiResponse esiResponse = await GetEsiResponse(response);
 
 			CheckRateLimit(response);
 			return esiResponse;
 		}
 
-		public async Task<EsiResponse<T>> GetResponse<T>(EsiRequest request, int index)
+		public async Task<ApiResponse<T>> GetResponse<T>(ApiRequest request, int index)
 		{
-			EsiResponse esiResponse = await GetResponse(request, index);
+			ApiResponse esiResponse = await GetResponse(request, index);
 			return esiResponse.ToType<T>();
 		}
 
-		public async Task<HttpResponseMessage> GetHttpResponse(EsiRequest request, int index)
+		public async Task<HttpResponseMessage> GetHttpResponse(ApiRequest request, int index)
 		{
 			Uri requestUri = new Uri(request.GetRequestUrl(index));
 			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);
@@ -57,7 +57,7 @@ namespace EveOpenApi.Managers
 			return await Client.SendAsync(requestMessage);
 		}
 
-		async Task<EsiResponse> GetEsiResponse(HttpResponseMessage response)
+		async Task<ApiResponse> GetEsiResponse(HttpResponseMessage response)
 		{
 			string eTag = TryGetHeaderValue(response.Headers, "etag");
 			string expires = TryGetHeaderValue(response.Content.Headers, "expires");
@@ -73,9 +73,9 @@ namespace EveOpenApi.Managers
 			switch (response.StatusCode)
 			{
 				case HttpStatusCode.OK:
-					return new EsiResponse(eTag, json, parsedExpiery, cacheControl);
+					return new ApiResponse(eTag, json, parsedExpiery, cacheControl);
 				default:
-					return new EsiError(eTag, json, parsedExpiery, cacheControl, response.StatusCode);
+					return new ApiError(eTag, json, parsedExpiery, cacheControl, response.StatusCode);
 			}
 		}
 

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EveOpenApi.Esi
+namespace EveOpenApi.Api
 {
-	public class EsiConfig
+	public class ApiConfig
 	{
 		/// <summary>
 		/// Automaticly ask for the needed scope if it has not already been granted.

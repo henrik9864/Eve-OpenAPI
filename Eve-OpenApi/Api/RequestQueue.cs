@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EveOpenApi.Esi
+namespace EveOpenApi.Api
 {
 	internal class RequestQueueAsync<T1, T2>
 	{

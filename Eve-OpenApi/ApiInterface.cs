@@ -1,5 +1,5 @@
 ﻿using EveOpenApi.Enums;
-using EveOpenApi.Esi;
+using EveOpenApi.Api;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi
 {
-	public class OpenApiInterface
+	public class API
 	{
 		internal static HttpClient Client { get; set; }
 
@@ -31,11 +31,11 @@ namespace EveOpenApi
 
 		internal ResponseManager ResponseManager { get; }
 
-		internal EsiConfig Config { get; }
+		internal ApiConfig Config { get; }
 
 		#endregion
 
-		public OpenApiInterface(ILogin login, OpenApiDocument spec, EsiConfig config)
+		public API(ILogin login, OpenApiDocument spec, ApiConfig config)
 		{
 			Login = login;
 			Spec = spec;
@@ -54,11 +54,11 @@ namespace EveOpenApi
 			Login = login;
 		}
 
-		public OpenApiPath Path(string path)
+		public ApiPath Path(string path)
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
 			{
-				return new OpenApiPath(this, path, pathItem);
+				return new ApiPath(this, path, pathItem);
 			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
@@ -73,7 +73,7 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<OpenApiInterface> CreateEsi(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, EsiConfig config = default)
+		public static Task<API> CreateEsi(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}{version}/swagger.json?datasource={datasource}".ToLower();
@@ -89,14 +89,14 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<OpenApiInterface> CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, EsiConfig config = default)
+		public static Task<API> CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}_{version}/swagger.json?datasource={datasource}".ToLower();
 			return Create(specUrl, login, client, config);
 		}
 
-		public static async Task<OpenApiInterface> Create(string specUrl, ILogin login, HttpClient client = default, EsiConfig config = default)
+		public static async Task<API> Create(string specUrl, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			if (Client == default && client != default)
 				Client = client;
@@ -104,10 +104,10 @@ namespace EveOpenApi
 				Client = new HttpClient();
 
 			if (config is null)
-				config = new EsiConfig();
+				config = new ApiConfig();
 
 			OpenApiDocument document = await SpecFromUrl(specUrl);
-			return new OpenApiInterface(login, document, config);
+			return new API(login, document, config);
 		}
 
 		/// <summary>

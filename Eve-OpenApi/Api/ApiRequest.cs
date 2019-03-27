@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace EveOpenApi.Esi
+namespace EveOpenApi.Api
 {
-	internal class EsiRequest
+	internal class ApiRequest
 	{
 		public string BaseUrl { get; }
 
@@ -18,7 +18,7 @@ namespace EveOpenApi.Esi
 
 		public ParsedParameters Parameters { get; }
 
-		public EsiRequest(string baseUrl, string path, string scope, HttpMethod method, ParsedParameters parametesr)
+		public ApiRequest(string baseUrl, string path, string scope, HttpMethod method, ParsedParameters parametesr)
 		{
 			BaseUrl = baseUrl;
 			Path = path;

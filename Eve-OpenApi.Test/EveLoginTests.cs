@@ -1,6 +1,6 @@
 using EveOpenApi;
 using EveOpenApi.Enums;
-using EveOpenApi.Esi;
+using EveOpenApi.Api;
 using EveOpenApi.Interfaces;
 using NUnit.Framework;
 using System;
@@ -13,7 +13,7 @@ namespace Tests
 	public class EveLoginTests
 	{
 		EveLogin login;
-		OpenApiInterface esi;
+		API esi;
 
 		[SetUp]
 		public void Setup()
@@ -29,7 +29,7 @@ namespace Tests
 			login = await EveLogin.FromFile(testDataDir + "/Save.json");
 			//await login.SaveToFile(testDataDir + "/Save.json");
 			//esi = await ESI.CreateVersioned(EsiVersion.Latest, Datasource.Tranquility, login);
-			esi = await OpenApiInterface.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login);
+			esi = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login);
 
 			esi.ChangeLogin(login);
 		}
@@ -109,14 +109,14 @@ namespace Tests
 		[Test]
 		public async Task PathSuccsess()
 		{
-			OpenApiPath path = esi.Path("/alliances/");
+			ApiPath path = esi.Path("/alliances/");
 
-			EsiResponse response = await path.Get();
+			ApiResponse response = await path.Get();
 			List<string> alliances = (await path.Get<List<string>>()).Response;
 
 			Assert.AreEqual("1354830081", alliances[0]);
 
-			OpenApiPath aPath = esi.Path("/alliances/{alliance_id}/");
+			ApiPath aPath = esi.Path("/alliances/{alliance_id}/");
 			await aPath.Get<dynamic>(("alliance_id", alliances[0]));
 			await aPath.GetBatch<dynamic>(("alliance_id", new List<object> { alliances[0], alliances[1] }));
 

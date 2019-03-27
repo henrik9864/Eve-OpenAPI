@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace EveOpenApi.Esi
+namespace EveOpenApi.Api
 {
-	public class EsiError : EsiResponse
+	public class ApiError : ApiResponse
 	{
 		public string Error { get; }
 
 		public HttpStatusCode StatusCode { get; }
 
-		internal EsiError(string eTag, string response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
+		internal ApiError(string eTag, string response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
 			: base(eTag, response, expired, cacheControl)
 		{
 			if (response[0] == '{')
@@ -28,7 +28,7 @@ namespace EveOpenApi.Esi
 			StatusCode = statusCode;
 		}
 
-		public override EsiResponse<T> ToType<T>()
+		public override ApiResponse<T> ToType<T>()
 		{
 			throw new Exception("EsiError cannot be casted.");
 		}

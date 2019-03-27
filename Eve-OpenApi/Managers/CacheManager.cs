@@ -1,4 +1,4 @@
-﻿using EveOpenApi.Esi;
+﻿using EveOpenApi.Api;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,12 +13,12 @@ namespace EveOpenApi.Managers
 {
 	internal class CacheManager : BaseManager
 	{
-		Dictionary<string, EsiResponse> cache = new Dictionary<string, EsiResponse>();
-		RequestQueueAsync<EsiRequest, List<EsiResponse>> requestQueue;
+		Dictionary<string, ApiResponse> cache = new Dictionary<string, ApiResponse>();
+		RequestQueueAsync<ApiRequest, List<ApiResponse>> requestQueue;
 
-		public CacheManager(HttpClient client, OpenApiInterface esiNet) : base(client, esiNet)
+		public CacheManager(HttpClient client, API esiNet) : base(client, esiNet)
 		{
-			requestQueue = new RequestQueueAsync<EsiRequest, List<EsiResponse>>(ProcessResponse);
+			requestQueue = new RequestQueueAsync<ApiRequest, List<ApiResponse>>(ProcessResponse);
 		}
 
 		/// <summary>
@@ -26,23 +26,23 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public Task<List<EsiResponse>> GetResponse(EsiRequest request)
+		public Task<List<ApiResponse>> GetResponse(ApiRequest request)
 		{
 			return ExecuteRequest(request);
 		}
 
-		public async Task<List<EsiResponse<T>>> GetResponse<T>(EsiRequest request)
+		public async Task<List<ApiResponse<T>>> GetResponse<T>(ApiRequest request)
 		{
-			List<EsiResponse> responses = await ExecuteRequest(request);
+			List<ApiResponse> responses = await ExecuteRequest(request);
 
-			List<EsiResponse<T>> returnResponses = new List<EsiResponse<T>>();
+			List<ApiResponse<T>> returnResponses = new List<ApiResponse<T>>();
 			for (int i = 0; i < responses.Count; i++)
 				returnResponses.Add(responses[i].ToType<T>());
 
 			return returnResponses;
 		}
 
-		async Task<List<EsiResponse>> ExecuteRequest(EsiRequest request)
+		async Task<List<ApiResponse>> ExecuteRequest(ApiRequest request)
 		{
 			if (EsiNet.Config.UseInternalLoop)
 			{
@@ -55,7 +55,7 @@ namespace EveOpenApi.Managers
 			}
 		}
 
-		async Task<int> AddToRequestQueue(EsiRequest request)
+		async Task<int> AddToRequestQueue(ApiRequest request)
 		{
 			if (!EsiNet.Login.TryGetToken((Scope)request.Scope, out IToken token))
 			{
@@ -91,7 +91,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public bool TryHitCache(EsiRequest request, int index, out EsiResponse response)
+		public bool TryHitCache(ApiRequest request, int index, out ApiResponse response)
 		{
 			string requestUrl = request.GetRequestUrl(index);
 			if (cache.TryGetValue(requestUrl, out response) && DateTime.Now < response.Expired)
@@ -105,7 +105,7 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="requestUrl"></param>
 		/// <param name="response"></param>
-		void SaveToCache(EsiRequest request, int index, EsiResponse response)
+		void SaveToCache(ApiRequest request, int index, ApiResponse response)
 		{
 			string requestUrl = request.GetRequestUrl(index);
 			if (!cache.TryAdd(requestUrl, response))
@@ -119,10 +119,10 @@ namespace EveOpenApi.Managers
 		/// <param name="index"></param>
 		/// <param name="eTag"></param>
 		/// <returns></returns>
-		bool TryGetETag(EsiRequest request, int index, out string eTag)
+		bool TryGetETag(ApiRequest request, int index, out string eTag)
 		{
 			string requestUrl = request.GetRequestUrl(index);
-			if (cache.TryGetValue(requestUrl, out EsiResponse response))
+			if (cache.TryGetValue(requestUrl, out ApiResponse response))
 			{
 				eTag = response.ETag;
 				return true;
@@ -137,13 +137,13 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		async Task<List<EsiResponse>> ProcessResponse(EsiRequest request)
+		async Task<List<ApiResponse>> ProcessResponse(ApiRequest request)
 		{
-			List<EsiResponse> esiResponses = new List<EsiResponse>();
+			List<ApiResponse> esiResponses = new List<ApiResponse>();
 
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 			{
-				if (TryHitCache(request, i, out EsiResponse response))
+				if (TryHitCache(request, i, out ApiResponse response))
 				{
 					esiResponses.Add(response);
 					break;

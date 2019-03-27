@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace EveOpenApi.Esi
+namespace EveOpenApi.Api
 {
-	public class EsiResponse
+	public class ApiResponse
 	{
 		public string ETag { get; }
 
@@ -15,7 +15,7 @@ namespace EveOpenApi.Esi
 
 		internal string CacheControl { get; }
 
-		internal EsiResponse(string eTag, string response, DateTime expired, string cacheControl)
+		internal ApiResponse(string eTag, string response, DateTime expired, string cacheControl)
 		{
 			ETag = eTag;
 			Response = response;
@@ -23,9 +23,9 @@ namespace EveOpenApi.Esi
 			CacheControl = cacheControl;
 		}
 
-		public virtual EsiResponse<T> ToType<T>()
+		public virtual ApiResponse<T> ToType<T>()
 		{
-			return new EsiResponse<T>(ETag, Response, Expired, CacheControl);
+			return new ApiResponse<T>(ETag, Response, Expired, CacheControl);
 		}
 	}
 }
