@@ -18,7 +18,7 @@ namespace EveOpenApi.Managers
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, API esiNet) : base(client, esiNet)
+		public ResponseManager(HttpClient client, API api) : base(client, api)
 		{
 		}
 
@@ -48,7 +48,7 @@ namespace EveOpenApi.Managers
 			// Throttle requests if users send too many errors.
 			if (errorRemain <= 0 && errorReset > DateTime.Now)
 			{
-				if (EsiNet.Config.RateLimitThrotle)
+				if (API.Config.RateLimitThrotle)
 					await Task.Delay(errorReset - DateTime.Now);
 				else
 					throw new Exception("Rate limit reached.");

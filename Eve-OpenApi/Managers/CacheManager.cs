@@ -16,7 +16,7 @@ namespace EveOpenApi.Managers
 		Dictionary<string, ApiResponse> cache = new Dictionary<string, ApiResponse>();
 		RequestQueueAsync<ApiRequest, List<ApiResponse>> requestQueue;
 
-		public CacheManager(HttpClient client, API esiNet) : base(client, esiNet)
+		public CacheManager(HttpClient client, API api) : base(client, api)
 		{
 			requestQueue = new RequestQueueAsync<ApiRequest, List<ApiResponse>>(ProcessResponse);
 		}
@@ -44,7 +44,7 @@ namespace EveOpenApi.Managers
 
 		async Task<List<ApiResponse>> ExecuteRequest(ApiRequest request)
 		{
-			if (EsiNet.Config.UseInternalLoop)
+			if (API.Config.UseInternalLoop)
 			{
 				int id = await AddToRequestQueue(request);
 				return await requestQueue.AwaitResponse(id);
@@ -57,32 +57,43 @@ namespace EveOpenApi.Managers
 
 		async Task<int> AddToRequestQueue(ApiRequest request)
 		{
-			if (!EsiNet.Login.TryGetToken((Scope)request.Scope, out IToken token))
+			if (API.Login != null)
+				await AddToken(request);
+
+			if (string.IsNullOrEmpty(API.Config.UserAgent))
+				throw new Exception("User-Agent must be set.");
+
+			request.SetHeader("X-User-Agent", API.Config.UserAgent);
+
+			return requestQueue.AddRequest(request);
+		}
+
+		/// <summary>
+		/// Add access token to the request where it is sepcified to be
+		/// </summary>
+		/// <param name="request"></param>
+		/// <returns></returns>
+		async Task AddToken(ApiRequest request)
+		{
+			if (!API.Login.TryGetToken((Scope)request.Scope, out IToken token))
 			{
-				if (EsiNet.Config.AutoRequestScope)
-					token = await EsiNet.Login.AddToken((Scope)request.Scope);
+				if (API.Config.AutoRequestScope)
+					token = await API.Login.AddToken((Scope)request.Scope);
 				else
 					throw new Exception($"No token with scope '{request.Scope}'");
 			}
 
-			switch (EsiNet.Login.Setup.TokenLocation)
+			switch (API.Login.Setup.TokenLocation)
 			{
 				case "header":
-					request.SetHeader(EsiNet.Login.Setup.TokenName, await token.GetToken());
+					request.SetHeader(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				case "query":
-					request.AddQuery(EsiNet.Login.Setup.TokenName, await token.GetToken());
+					request.AddQuery(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				default:
 					throw new Exception("Unknwon access token location");
 			}
-
-			if (string.IsNullOrEmpty(EsiNet.Config.UserAgent))
-				throw new Exception("User-Agent must be set.");
-
-			request.SetHeader("X-User-Agent", EsiNet.Config.UserAgent);
-
-			return requestQueue.AddRequest(request);
 		}
 
 		/// <summary>
@@ -91,7 +102,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public bool TryHitCache(ApiRequest request, int index, out ApiResponse response)
+		bool TryHitCache(ApiRequest request, int index, out ApiResponse response)
 		{
 			string requestUrl = request.GetRequestUrl(index);
 			if (cache.TryGetValue(requestUrl, out response) && DateTime.Now < response.Expired)
@@ -152,7 +163,7 @@ namespace EveOpenApi.Managers
 				TryGetETag(request, i, out string eTag);
 				request.SetHeader("If-None-Match", eTag);
 
-				response = await EsiNet.ResponseManager.GetResponse(request, i);
+				response = await API.ResponseManager.GetResponse(request, i);
 				if (response.Expired != default && response.CacheControl == "Public" || response.CacheControl == "Private")
 					SaveToCache(request, i, response);
 

@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Seat;
 using System;
 using System.Collections.Generic;
 using System.Text;

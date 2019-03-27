@@ -11,7 +11,7 @@ namespace EveOpenApi.Managers
 {
 	internal class RequestManager : BaseManager
 	{
-		public RequestManager(HttpClient client, API esiNet) : base(client, esiNet)
+		public RequestManager(HttpClient client, API api) : base(client, api)
 		{
 		}
 
@@ -27,7 +27,7 @@ namespace EveOpenApi.Managers
 		public async Task<List<ApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, operation);
-			return await EsiNet.CacheManager.GetResponse(request);
+			return await API.CacheManager.GetResponse(request);
 		}
 
 		/// <summary>
@@ -43,13 +43,13 @@ namespace EveOpenApi.Managers
 		public async Task<List<ApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, operation);
-			return await EsiNet.CacheManager.GetResponse<T>(request);
+			return await API.CacheManager.GetResponse<T>(request);
 		}
 
 		ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters);
-			string esiBaseUrl = $"{EsiNet.Spec.Servers[0].Url}";
+			string esiBaseUrl = $"{API.Spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 
@@ -72,7 +72,7 @@ namespace EveOpenApi.Managers
 			foreach (var item in operation.Parameters)
 			{
 				bool found = parameters.TryGetValue(item.Name, out List<object> value);
-
+				
 				if (found)
 				{
 					if (maxLength == 1 && value.Count > maxLength)
@@ -96,7 +96,7 @@ namespace EveOpenApi.Managers
 							break;
 					}
 				}
-				else if (item.Required)
+				else if (item.Required && API.Login?.Setup.TokenLocation != "query" && API.Login?.Setup.TokenName == item.Name)
 					throw new Exception($"Required parameter '{item.Name}' not supplied.");
 			}
 

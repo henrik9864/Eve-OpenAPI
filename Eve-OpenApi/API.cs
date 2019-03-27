@@ -49,7 +49,7 @@ namespace EveOpenApi
 		public void ChangeLogin(ILogin login)
 		{
 			if (login is null)
-				throw new NullReferenceException("Login must be non null.");
+				throw new NullReferenceException("Cannot change login to null.");
 
 			Login = login;
 		}
@@ -81,7 +81,7 @@ namespace EveOpenApi
 		}
 
 		/// <summary>
-		/// Create a new EsiNet with versioned specification.
+		/// Create a new API interface for ESI with versioned specification.
 		/// </summary>
 		/// <param name="version">Spec version.</param>
 		/// <param name="datasource">Spe datasource.</param>
@@ -96,7 +96,15 @@ namespace EveOpenApi
 			return Create(specUrl, login, client, config);
 		}
 
-		public static async Task<API> Create(string specUrl, ILogin login, HttpClient client = default, ApiConfig config = default)
+		/// <summary>
+		/// Create an API interface for any OpenAPI with supported login.
+		/// </summary>
+		/// <param name="specUrl"></param>
+		/// <param name="login"></param>
+		/// <param name="client"></param>
+		/// <param name="config"></param>
+		/// <returns></returns>
+		public static async Task<API> Create(string specUrl, ILogin login = default, HttpClient client = default, ApiConfig config = default)
 		{
 			if (Client == default && client != default)
 				Client = client;
