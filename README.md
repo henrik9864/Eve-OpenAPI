@@ -53,29 +53,42 @@ string FilePath = "path to your save file";
 // Do it yourself
 string json = await login.ToJson(FilePath);
 ```
-#### Setup ESI
-It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI.
+#### Setup ESI specific API
+It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
 ```cs
-EsiConfig config = new EsiConfig {
+ApiConfig config = new ApiConfig {
   UserAgent = "Your user agent",
 };
 
-// When you create ESI you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
-ESI esi = await ESI.Create(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
+// When you create the ESI interface you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
+API api = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
 ```
-#### Retrive data from ESI
+#### Setup API
+```cs
+ApiConfig config = new ApiConfig {
+  UserAgent = "Your user agent",
+};
+
+// Connect the API interface to an arbitrary api.
+API api = API.Create("Specification URL", config: config);
+
+// If the API require authentication you can pass in the login as the second argument, like for example ESI or SeAT.
+API api = API.Create("Specification URL", login, config: config);
+```
+#### Retrive data from API interface
+This exampke is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
-EsiPath path = esi.Path("/characters/{character_id}/mail/");
+ApiPath path = esi.Path("/characters/{character_id}/mail/");
 
-EsiResponse response = await path.Get("Character Name", ("character_id", "character id"));
+ApiResponse response = await path.Get("Character Name", ("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-EsiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
+ApiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
 
 // If you want to do a batch request to for multiple characters use GetBatch
 List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<EsiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+Lis<ApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
 ```
 ---
 
