@@ -41,7 +41,7 @@ Or alternativly if you want to load from a save file.
 ```cs
 string FilePath = "path to your save file";
 
-EveLogin login = await EveLogin.FromFile(FilePath);
+ILogin login = await EveLogin.FromFile(FilePath);
 ```
 #### Save EveLogin
 There is two ways to save a EveLogin. The SaveToFile method automaticly writes it to a file, if you want more control you can use the ToJson method.
@@ -53,6 +53,12 @@ string FilePath = "path to your save file";
 // Do it yourself
 string json = await login.ToJson(FilePath);
 ```
+#### Create a SeatLogin
+```cs
+// SeAT code must be obtained by your seat administrator and must be specific for your IP.
+ILogin login = new SeatLogin("Your SeAT key here");
+```
+
 #### Setup ESI specific API
 It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
 ```cs
