@@ -76,7 +76,7 @@ API api = API.Create("Specification URL", config: config);
 API api = API.Create("Specification URL", login, config: config);
 ```
 #### Retrive data from API interface
-This exampke is shown using ESI but the interface works the same way for all API's.
+This example is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
 ApiPath path = esi.Path("/characters/{character_id}/mail/");
