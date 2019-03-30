@@ -49,11 +49,11 @@ namespace EveOpenApi.Managers
 		ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters);
-			string esiBaseUrl = $"{API.Spec.Servers[0].Url}";
+			string baseUrl = $"{API.Spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 
-			return new ApiRequest(esiBaseUrl, path, scope, httpMethod, parsed);
+			return new ApiRequest(baseUrl, path, scope, httpMethod, parsed);
 		}
 
 		/// <summary>

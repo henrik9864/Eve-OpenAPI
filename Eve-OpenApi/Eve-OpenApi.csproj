@@ -5,11 +5,11 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>7.1</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.4</Version>
+    <Version>0.2.0</Version>
     <Authors>Henrik Strocka</Authors>
     <Company />
     <Product />
-    <Description>A library for accessing EVE online's ESI api.</Description>
+    <Description>A library for accessing EVE online related API's following the Swagger specification</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <ApplicationIcon />
     <StartupObject />
