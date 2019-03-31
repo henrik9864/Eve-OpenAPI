@@ -6,7 +6,7 @@ A library for accessing EVE online's ESI api.
 ### Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.1.4
+Install-Package Eve-OpenApi -Version 0.2.0
 ```
 
 ### Example
@@ -41,7 +41,7 @@ Or alternativly if you want to load from a save file.
 ```cs
 string FilePath = "path to your save file";
 
-EveLogin login = await EveLogin.FromFile(FilePath);
+ILogin login = await EveLogin.FromFile(FilePath);
 ```
 #### Save EveLogin
 There is two ways to save a EveLogin. The SaveToFile method automaticly writes it to a file, if you want more control you can use the ToJson method.
@@ -53,29 +53,48 @@ string FilePath = "path to your save file";
 // Do it yourself
 string json = await login.ToJson(FilePath);
 ```
-#### Setup ESI
-It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI.
+#### Create a SeatLogin
 ```cs
-EsiConfig config = new EsiConfig {
+// SeAT code must be obtained by your seat administrator and must be specific for your IP.
+ILogin login = new SeatLogin("Your SeAT key here");
+```
+
+#### Setup ESI specific API
+It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
+```cs
+ApiConfig config = new ApiConfig {
   UserAgent = "Your user agent",
 };
 
-// When you create ESI you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
-ESI esi = await ESI.Create(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
+// When you create the ESI interface you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
+API api = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
 ```
-#### Retrive data from ESI
+#### Setup API
+```cs
+ApiConfig config = new ApiConfig {
+  UserAgent = "Your user agent",
+};
+
+// Connect the API interface to an arbitrary api.
+API api = API.Create("Specification URL", config: config);
+
+// If the API require authentication you can pass in the login as the second argument, like for example ESI or SeAT.
+API api = API.Create("Specification URL", login, config: config);
+```
+#### Retrive data from API interface
+This example is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
-EsiPath path = esi.Path("/characters/{character_id}/mail/");
+ApiPath path = esi.Path("/characters/{character_id}/mail/");
 
-EsiResponse response = await path.Get("Character Name", ("character_id", "character id"));
+ApiResponse response = await path.Get("Character Name", ("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-EsiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
+ApiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
 
 // If you want to do a batch request to for multiple characters use GetBatch
 List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<EsiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+Lis<ApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
 ```
 ---
 
