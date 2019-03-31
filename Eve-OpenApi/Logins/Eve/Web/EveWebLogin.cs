@@ -55,9 +55,15 @@ namespace EveOpenApi
 			return EveAuthentication.GetAuthUrl(scope, ClientID, Callback);
 		}
 
-		public Task<IToken> AddToken(string code)
+		public async Task<IToken> AddToken(IScope scope, string code)
 		{
+			EveToken token = await EveAuthentication.GetWebToken(scope, code, ClientID, ClientSecret);
+			AddToken(token);
 
+			if (string.IsNullOrEmpty(CurrentUser))
+				CurrentUser = token.Name;
+
+			return token;
 		}
 
 		public bool TryGetToken(IScope scope, out IToken token)
@@ -82,6 +88,27 @@ namespace EveOpenApi
 		{
 			var dicList = userTokens.ToList();
 			return dicList.ConvertAll(a => a.Key);
+		}
+
+		public void ChangeUser(string user)
+		{
+			if (userTokens.ContainsKey(user))
+				CurrentUser = user;
+			else
+				throw new Exception("Invalid user.");
+		}
+
+		void AddToken(EveToken token)
+		{
+			if (userTokens.TryGetValue(token.Name, out List<IToken> list))
+				list.Add(token);
+			else
+			{
+				list = new List<IToken>();
+				list.Add(token);
+
+				userTokens.Add(token.Name, list);
+			}
 		}
 	}
 }

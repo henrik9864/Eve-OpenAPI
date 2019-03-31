@@ -114,6 +114,14 @@ namespace EveOpenApi
 			return dicList.ConvertAll(a => a.Key);
 		}
 
+		public void ChangeUser(string user)
+		{
+			if (userTokens.ContainsKey(user))
+				CurrentUser = user;
+			else
+				throw new Exception("Invalid user.");
+		}
+
 		/// <summary>
 		/// Save all tokens to file.
 		/// </summary>

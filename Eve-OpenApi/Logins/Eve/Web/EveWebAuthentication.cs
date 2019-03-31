@@ -24,7 +24,7 @@ namespace EveOpenApi.Eve
 			return (GetAuthURL(scope, clientID, callback, state), state);
 		}
 
-		internal static async Task<EveToken> GetToken(IScope scope, string code, string clientID, string clientSecret)
+		internal static async Task<EveToken> GetWebToken(IScope scope, string code, string clientID, string clientSecret)
 		{
 			EveCredentials credentials = await RetriveWebCredentials(code, clientID, clientSecret);
 			JwtToken jwtToken = await ValidateCredentials(credentials);
