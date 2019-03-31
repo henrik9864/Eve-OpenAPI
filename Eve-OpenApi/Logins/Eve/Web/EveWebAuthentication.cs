@@ -18,8 +18,11 @@ namespace EveOpenApi.Eve
 		/// <param name="callback"></param>
 		/// <param name="state"></param>
 		/// <returns></returns>
-		internal static (string, string) GetAuthUrl(IScope scope, string clientID, string callback)
+		internal static (string, string) GetAuthUrl(IScope scope, string clientID, string callback, HttpClient httpClient = default)
 		{
+			if (httpClient != default && Client == null)
+				Client = httpClient;
+
 			string state = RandomString(8);
 			return (GetAuthURL(scope, clientID, callback, state), state);
 		}
@@ -52,19 +55,28 @@ namespace EveOpenApi.Eve
 
 		static async Task<EveCredentials> RetriveWebCredentials(string code, string clientID, string clientSecret)
 		{
-			string loginUrl = "https://login.eveonline.com/v2/oauth/token" +
-							$"grant_type=authorization_code" +
-							$"code={code}";
+			string loginUrl = "https://login.eveonline.com/v2/oauth/token";
+			KeyValuePair<string, string>[] data = new[]
+			{
+				new KeyValuePair<string, string>("grant_type", "authorization_code"),
+				new KeyValuePair<string, string>("code", code),
+			};
 
 			string authString = $"{clientID}:{clientSecret}";
-			string urlSafe = UrlSafeBase64(Encoding.UTF8.GetBytes(authString));
+			string urlSafe = Convert.ToBase64String(Encoding.ASCII.GetBytes(authString));
 
+			Console.WriteLine(authString);
+			Console.WriteLine(urlSafe);
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, loginUrl);
-			request.Headers.TryAddWithoutValidation("Authorization", urlSafe);
+			request.Content = new FormUrlEncodedContent(data);
+
+			request.Headers.TryAddWithoutValidation("Authorization", "Basic " + urlSafe);
+
 
 			EveCredentials credentials;
 			using (HttpResponseMessage response = await Client.SendAsync(request))
 			{
+				Console.WriteLine(await response.Content.ReadAsStringAsync());
 				string json = await response.Content.ReadAsStringAsync();
 				credentials = JsonConvert.DeserializeObject<EveCredentials>(json);
 			}

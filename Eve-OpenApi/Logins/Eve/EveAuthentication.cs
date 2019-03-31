@@ -109,7 +109,7 @@ namespace EveOpenApi.Eve
 		static async Task<JwtToken> ValidateCredentials(EveCredentials credential)
 		{
 			JwtToken token;
-			using (HttpResponseMessage response = Client.GetAsync("https://login.eveonline.com/oauth/jwks").GetAwaiter().GetResult())
+			using (HttpResponseMessage response = await Client.GetAsync("https://login.eveonline.com/oauth/jwks"))
 			{
 				string json = await response.Content.ReadAsStringAsync();
 				Dictionary<string, JToken> keys = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(json);

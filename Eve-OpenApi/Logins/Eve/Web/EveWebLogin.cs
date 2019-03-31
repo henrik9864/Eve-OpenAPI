@@ -52,7 +52,7 @@ namespace EveOpenApi
 
 		public (string authURl, string state) GetAuthUrl(IScope scope)
 		{
-			return EveAuthentication.GetAuthUrl(scope, ClientID, Callback);
+			return EveAuthentication.GetAuthUrl(scope, ClientID, Callback, Client);
 		}
 
 		public async Task<IToken> AddToken(IScope scope, string code)
