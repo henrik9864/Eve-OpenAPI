@@ -77,9 +77,10 @@ namespace EveOpenApi.Managers
 		{
 			if (!API.Login.TryGetToken((Scope)request.Scope, out IToken token))
 			{
-				if (API.Config.AutoRequestScope)
-					token = await API.Login.AddToken((Scope)request.Scope);
-				else
+				// Temporary removed untill i can figure out a solution
+				//if (API.Config.AutoRequestScope)
+				//	token = await API.Login.AddToken((Scope)request.Scope);
+				//else
 					throw new Exception($"No token with scope '{request.Scope}'");
 			}
 

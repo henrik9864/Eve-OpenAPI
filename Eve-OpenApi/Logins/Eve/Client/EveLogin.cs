@@ -11,15 +11,14 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi
 {
+	/// <summary>
+	/// ESI authentication for client programs.
+	/// </summary>
 	public class EveLogin : ILogin
 	{
 		private static HttpClient Client { get; set; }
 
 		public IInterfaceSetup Setup { get; }
-
-		public string ClientID { get; }
-
-		public string Callback { get; }
 
 		public IToken this[string scope]
 		{
@@ -29,12 +28,21 @@ namespace EveOpenApi
 			}
 		}
 
+		public string ClientID { get; }
+
+		public string Callback { get; }
+
 		public string CurrentUser { get; private set; }
 
-		Dictionary<string, List<IToken>> userTokens { get; }
+		Dictionary<string, List<IToken>> userTokens;
 
-		private EveLogin(string clientID, string callback)
+		public EveLogin(string clientID, string callback, HttpClient client  = default)
 		{
+			if (Client == default && client != default)
+				Client = client;
+			else if (Client == default)
+				Client = new HttpClient();
+
 			ClientID = clientID;
 			Callback = callback;
 			Setup = new EveInterfaceSetup();
@@ -48,7 +56,7 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task<IToken> AddToken(IScope scope)
 		{
-			EveToken token = await EveToken.Create(scope, ClientID, Callback, Client);
+			EveToken token = await EveAuthentication.CreateToken(scope, ClientID, Callback, Client);
 			AddToken(token);
 
 			if (string.IsNullOrEmpty(CurrentUser))
@@ -64,7 +72,7 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task<string> GetAuthURL(IScope scope)
 		{
-			var auth = EveToken.Authenticate(scope, ClientID, Callback);
+			var auth = EveAuthentication.Authenticate(scope, ClientID, Callback);
 			AddResponse(scope, auth.state, auth.verifier);
 
 			await Task.CompletedTask;
@@ -149,7 +157,7 @@ namespace EveOpenApi
 		/// <param name="verfier"></param>
 		async void AddResponse(IScope scope, string state, string verfier)
 		{
-			EveToken token = await EveToken.ValidateResponse(scope, Callback, state, verfier, ClientID);
+			EveToken token = await EveAuthentication.ValidateResponse(scope, Callback, state, verfier, ClientID);
 			AddToken(token);
 		}
 
@@ -180,12 +188,7 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public static async Task<EveLogin> Login(Scope scope, string clientID, string callback, HttpClient client = default)
 		{
-			if (Client == default && client != default)
-				Client = client;
-			else
-				Client = new HttpClient();
-
-			EveLogin login = new EveLogin(clientID, callback);
+			EveLogin login = new EveLogin(clientID, callback, client);
 			await login.AddToken(scope);
 
 			return login;
@@ -199,11 +202,6 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public static async Task<EveLogin> FromFile(string filePath, HttpClient client = default)
 		{
-			if (Client == default && client != default)
-				Client = client;
-			else
-				Client = new HttpClient();
-
 			(Dictionary<string, List<string>> eveLoginSave, string clientID, string callback) loaded;
 			using (StreamReader reader = new StreamReader(filePath))
 			{
@@ -211,14 +209,14 @@ namespace EveOpenApi
 				loaded = JsonConvert.DeserializeObject<(Dictionary<string, List<string>>, string, string)>(json);
 			}
 
-			EveLogin login = new EveLogin(loaded.clientID, loaded.callback);
+			EveLogin login = new EveLogin(loaded.clientID, loaded.callback, client);
 			login.CurrentUser = loaded.eveLoginSave?.FirstOrDefault().Key;
 			foreach (var user in loaded.eveLoginSave)
 			{
 				List<IToken> tokens = new List<IToken>();
 
 				foreach (var token in user.Value)
-					tokens.Add(await EveToken.FromJson(token, Client));
+					tokens.Add(await EveAuthentication.FromJson(token, Client));
 
 				login.userTokens.Add(user.Key, tokens);
 			}

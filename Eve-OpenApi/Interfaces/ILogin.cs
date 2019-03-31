@@ -16,7 +16,7 @@ namespace EveOpenApi.Interfaces
 
 		bool TryGetToken(IScope scope, out IToken token);
 
-		Task<IToken> AddToken(IScope scope);
+		//Task<IToken> AddToken(IScope scope);
 
 		IToken GetToken(IScope scope);
 	}

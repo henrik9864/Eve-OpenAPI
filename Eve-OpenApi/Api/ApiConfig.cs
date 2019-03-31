@@ -9,7 +9,7 @@ namespace EveOpenApi.Api
 		/// <summary>
 		/// Automaticly ask for the needed scope if it has not already been granted.
 		/// </summary>
-		public bool AutoRequestScope { get; set; } = false;
+		//public bool AutoRequestScope { get; set; } = false;
 
 		/// <summary>
 		/// Use an internal background loop to regulate requests.
