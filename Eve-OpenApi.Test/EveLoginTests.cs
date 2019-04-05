@@ -29,7 +29,7 @@ namespace Tests
 			login = await EveLogin.FromFile(testDataDir + "/Save.json");
 			//await login.SaveToFile(testDataDir + "/Save.json");
 			//esi = await ESI.CreateVersioned(EsiVersion.Latest, Datasource.Tranquility, login);
-			esi = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login);
+			esi = API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login);
 
 			esi.ChangeLogin(login);
 		}

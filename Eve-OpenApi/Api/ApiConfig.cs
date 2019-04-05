@@ -1,10 +1,11 @@
-﻿using System;
+﻿using EveOpenApi.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace EveOpenApi.Api
 {
-	public class ApiConfig
+	public class ApiConfig : IApiConfig
 	{
 		/// <summary>
 		/// Automaticly ask for the needed scope if it has not already been granted.
@@ -25,5 +26,7 @@ namespace EveOpenApi.Api
 		/// User agent to send to ESI.
 		/// </summary>
 		public string UserAgent { get; set; }
+
+		public virtual string SpecURL { get; set; }
 	}
 }

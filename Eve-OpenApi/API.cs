@@ -10,6 +10,9 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using EveOpenApi.Api.Configs;
+using System.Net;
 
 namespace EveOpenApi
 {
@@ -21,7 +24,7 @@ namespace EveOpenApi
 
 		public OpenApiDocument Spec { get; private set; }
 
-		public Datasource Datasource { get; set; }
+		public string Test { get; }
 
 		#region Internal
 
@@ -34,6 +37,12 @@ namespace EveOpenApi
 		internal ApiConfig Config { get; }
 
 		#endregion
+
+		public API(ILogin login, IApiConfig config)
+			: this(login, SpecFromUrl(config.SpecURL), (ApiConfig)config)
+		{
+			Test = config.SpecURL;
+		}
 
 		public API(ILogin login, OpenApiDocument spec, ApiConfig config)
 		{
@@ -73,7 +82,7 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<API> CreateEsi(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
+		public static API CreateEsi(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}{version}/swagger.json?datasource={datasource}".ToLower();
@@ -89,7 +98,7 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public static Task<API> CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
+		public API CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}_{version}/swagger.json?datasource={datasource}".ToLower();
@@ -104,7 +113,7 @@ namespace EveOpenApi
 		/// <param name="client"></param>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		public static async Task<API> Create(string specUrl, ILogin login = default, HttpClient client = default, ApiConfig config = default)
+		public static API Create(string specUrl, ILogin login = default, HttpClient client = default, ApiConfig config = default)
 		{
 			if (Client == default && client != default)
 				Client = client;
@@ -114,29 +123,24 @@ namespace EveOpenApi
 			if (config is null)
 				config = new ApiConfig();
 
-			OpenApiDocument document = await SpecFromUrl(specUrl);
+			OpenApiDocument document = SpecFromUrl(specUrl);
 			return new API(login, document, config);
 		}
 
 		/// <summary>
-		/// Download the ESI swagger spec from the url.
+		/// Download the ESI swagger spec from the url. This is not async so it can be used in constructores
 		/// </summary>
 		/// <param name="specUrl"></param>
 		/// <returns></returns>
-		static async Task<OpenApiDocument> SpecFromUrl(string specUrl)
+		static OpenApiDocument SpecFromUrl(string specUrl)
 		{
-			Stream specStream = await Client.GetStreamAsync(specUrl);
-			return ParseSpec(specStream);
-		}
+			string specString;
+			using (WebClient webClient = new WebClient())
+			{
+				specString = webClient.DownloadString(specUrl);
+			}
 
-		/// <summary>
-		/// Convert a json spec to an OpenApiDocument
-		/// </summary>
-		/// <param name="specStream"></param>
-		/// <returns></returns>
-		static OpenApiDocument ParseSpec(Stream specStream)
-		{
-			return new OpenApiStreamReader().Read(specStream, out OpenApiDiagnostic diagnostic);
+			return new OpenApiStringReader().Read(specString, out OpenApiDiagnostic diagnostic);
 		}
 	}
 }
