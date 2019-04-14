@@ -36,7 +36,7 @@ namespace EveOpenApi
 		{
 			services.AddSingleton<HttpClient>();
 			services.Configure<EveWebConfig>(config.GetSection("EveConfig"));
-			services.AddScoped<ILogin, EveWebLogin>();
+			services.AddSingleton<ILogin, EveWebLogin>();
 
 			return services;
 		}
@@ -45,7 +45,7 @@ namespace EveOpenApi
 		{
 			services.AddSingleton<HttpClient>();
 			services.Configure<SeatConfig>(config.GetSection("SeatConfig"));
-			services.AddScoped<ILogin, SeatLogin>();
+			services.AddSingleton<ILogin, SeatLogin>();
 
 			return services;
 		}
