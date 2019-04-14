@@ -1,17 +1,17 @@
-﻿using EveOpenApi.Api;
+﻿using EveOpenApi;
+using EveOpenApi.Api;
 using EveOpenApi.Api.Configs;
 using EveOpenApi.Eve;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Seat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace EveOpenApi
+namespace Microsoft.Extensions.DependencyInjection
 {
 	public static class AspNet
 	{
