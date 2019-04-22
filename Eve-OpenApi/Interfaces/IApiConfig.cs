@@ -7,7 +7,7 @@ namespace EveOpenApi.Interfaces
 {
     public interface IApiConfig
 	{
-		bool UseInternalLoop { get; set; }
+		bool UseRequestQueue { get; set; }
 
 		bool RateLimitThrotle { get; set; }
 

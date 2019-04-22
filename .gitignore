@@ -9,6 +9,7 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+Eve-OpenApi/TODO.txt
 Eve-OpenApi.Examples/Program.cs
 Eve-OpenApi.Examples/Structs/Credentials.cs
 

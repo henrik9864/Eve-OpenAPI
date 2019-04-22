@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Enums;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace EveOpenApi.Managers
 {
 	internal class CacheManager : BaseManager
 	{
-		Dictionary<string, ApiResponse> cache = new Dictionary<string, ApiResponse>();
+		Dictionary<int, ApiResponse> cache = new Dictionary<int, ApiResponse>();
 		RequestQueueAsync<ApiRequest, List<ApiResponse>> requestQueue;
 
 		public CacheManager(HttpClient client, API api) : base(client, api)
@@ -42,9 +43,22 @@ namespace EveOpenApi.Managers
 			return returnResponses;
 		}
 
+		public async Task<ApiResponse> GetResponse(ApiRequest request, int index)
+		{
+			await AddToken(request);
+			return await ProcessResponse(request, index);
+		}
+
+		public async Task<ApiResponse<T>> GetResponse<T>(ApiRequest request, int index)
+		{
+			await AddToken(request);
+			ApiResponse response = await ProcessResponse(request, index);
+			return response.ToType<T>();
+		}
+
 		async Task<List<ApiResponse>> ExecuteRequest(ApiRequest request)
 		{
-			if (API.Config.UseInternalLoop)
+			if (API.Config.UseRequestQueue)
 			{
 				int id = await AddToRequestQueue(request);
 				return await requestQueue.AwaitResponse(id);
@@ -63,7 +77,7 @@ namespace EveOpenApi.Managers
 			if (string.IsNullOrEmpty(API.Config.UserAgent))
 				throw new Exception("User-Agent must be set.");
 
-			request.SetHeader("X-User-Agent", API.Config.UserAgent);
+			request.SetHeader("User-Agent", API.Config.UserAgent);
 
 			return requestQueue.AddRequest(request);
 		}
@@ -78,6 +92,7 @@ namespace EveOpenApi.Managers
 			if (!API.Login.TryGetToken((Scope)request.Scope, out IToken token))
 			{
 				// Temporary removed untill i can figure out a solution
+				// Might not be so temporary
 				//if (API.Config.AutoRequestScope)
 				//	token = await API.Login.AddToken((Scope)request.Scope);
 				//else
@@ -87,9 +102,15 @@ namespace EveOpenApi.Managers
 			switch (API.Login.Setup.TokenLocation)
 			{
 				case "header":
+					if (request.Parameters.Headers.Exists(a => a.Key == API.Login.Setup.TokenName))
+						return;
+
 					request.SetHeader(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				case "query":
+					if (request.Parameters.Queries.Exists(a => a.Key == API.Login.Setup.TokenName))
+						return;
+
 					request.AddQuery(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				default:
@@ -103,10 +124,9 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		bool TryHitCache(ApiRequest request, int index, out ApiResponse response)
+		public bool TryHitCache(ApiRequest request, int index, bool validateTime, out ApiResponse response)
 		{
-			string requestUrl = request.GetRequestUrl(index);
-			if (cache.TryGetValue(requestUrl, out response) && DateTime.Now < response.Expired)
+			if (cache.TryGetValue(request.GetHashCode(index), out response) && (!validateTime || DateTime.UtcNow < response.Expired))
 				return true;
 
 			return false;
@@ -119,13 +139,12 @@ namespace EveOpenApi.Managers
 		/// <param name="response"></param>
 		void SaveToCache(ApiRequest request, int index, ApiResponse response)
 		{
-			string requestUrl = request.GetRequestUrl(index);
-			if (!cache.TryAdd(requestUrl, response))
-				cache[requestUrl] = response;
+			if (!cache.TryAdd(request.GetHashCode(), response))
+				cache[request.GetHashCode()] = response;
 		}
 
 		/// <summary>
-		/// Tries to retrive an eTag from a response. (Will not check if expired)
+		/// Tries to retrive an eTag from a response.
 		/// </summary>
 		/// <param name="request"></param>
 		/// <param name="index"></param>
@@ -133,8 +152,7 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		bool TryGetETag(ApiRequest request, int index, out string eTag)
 		{
-			string requestUrl = request.GetRequestUrl(index);
-			if (cache.TryGetValue(requestUrl, out ApiResponse response))
+			if (cache.TryGetValue(request.GetHashCode(index), out ApiResponse response))
 			{
 				eTag = response.ETag;
 				return true;
@@ -152,26 +170,43 @@ namespace EveOpenApi.Managers
 		async Task<List<ApiResponse>> ProcessResponse(ApiRequest request)
 		{
 			List<ApiResponse> esiResponses = new List<ApiResponse>();
-
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 			{
-				if (TryHitCache(request, i, out ApiResponse response))
-				{
-					esiResponses.Add(response);
-					break;
-				}
-
-				TryGetETag(request, i, out string eTag);
-				request.SetHeader("If-None-Match", eTag);
-
-				response = await API.ResponseManager.GetResponse(request, i);
-				if (response.Expired != default && response.CacheControl == "Public" || response.CacheControl == "Private")
-					SaveToCache(request, i, response);
-
-				esiResponses.Add(response);
+				esiResponses.Add(await ProcessResponse(request, i));
 			}
 
 			return esiResponses;
+		}
+
+		async Task<ApiResponse> ProcessResponse(ApiRequest request, int index)
+		{
+			if (API.Config.UseCache && TryHitCache(request, index, true, out ApiResponse response))
+			{
+				Console.WriteLine(response.Expired);
+				Console.WriteLine($"Hit! {DateTime.UtcNow < response.Expired}");
+				return response;
+			}
+
+			TryGetETag(request, index, out string eTag);
+			request.SetHeader("If-None-Match", eTag);
+
+			response = await API.ResponseManager.GetResponse(request, index);
+			if (response is ApiError)
+			{
+				ApiError error = response as ApiError;
+
+				Console.WriteLine(error.StatusCode);
+				if (error.StatusCode == System.Net.HttpStatusCode.NotModified)
+				{
+					TryHitCache(request, index, false, out response);
+					response.UpdateExpiery(error);
+				}
+			}
+			
+			if (response.Expired != default && (Cacheability.Public | Cacheability.Private).HasFlag(response.CacheControl.Cacheability))
+				SaveToCache(request, index, response);
+
+			return response;
 		}
 	}
 }

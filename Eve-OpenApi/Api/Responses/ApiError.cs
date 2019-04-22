@@ -15,7 +15,7 @@ namespace EveOpenApi.Api
 		internal ApiError(string eTag, string response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
 			: base(eTag, response, expired, cacheControl)
 		{
-			if (response[0] == '{')
+			if (response.Length > 0 && response[0] == '{')
 			{
 				dynamic jObj = JsonConvert.DeserializeObject(base.Response);
 				Error = jObj.error;
@@ -30,7 +30,7 @@ namespace EveOpenApi.Api
 
 		public override ApiResponse<T> ToType<T>()
 		{
-			throw new Exception("EsiError cannot be casted.");
+			throw new Exception($"ApiError cannot be casted. Error: {Error}");
 		}
 	}
 }

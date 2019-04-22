@@ -15,7 +15,12 @@ namespace EveOpenApi.Api
 		/// <summary>
 		/// Use an internal background loop to regulate requests.
 		/// </summary>
-		public bool UseInternalLoop { get; set; } = true;
+		public bool UseRequestQueue { get; set; } = true;
+
+		/// <summary>
+		/// Wether you allow for the backround loop to use events.
+		/// </summary>
+		public bool EnableEventQueue { get; set; } = true;
 
 		/// <summary>
 		/// Whether to throttle requests or throw exception when rate limit has been reached.
@@ -23,10 +28,18 @@ namespace EveOpenApi.Api
 		public bool RateLimitThrotle { get; set; } = true;
 
 		/// <summary>
+		/// Whether yo use build in cache or not.
+		/// </summary>
+		public bool UseCache { get; set; } = true;
+
+		/// <summary>
 		/// User agent to send to ESI.
 		/// </summary>
 		public string UserAgent { get; set; }
 
+		/// <summary>
+		/// Url to swager spec for the api, usually set by the IApiConfig
+		/// </summary>
 		public virtual string SpecURL { get; set; }
 	}
 }

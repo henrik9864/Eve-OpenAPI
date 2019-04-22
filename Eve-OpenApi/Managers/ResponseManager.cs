@@ -37,7 +37,7 @@ namespace EveOpenApi.Managers
 			return esiResponse.ToType<T>();
 		}
 
-		public async Task<HttpResponseMessage> GetHttpResponse(ApiRequest request, int index)
+		async Task<HttpResponseMessage> GetHttpResponse(ApiRequest request, int index)
 		{
 			Uri requestUri = new Uri(request.GetRequestUrl(index));
 			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);

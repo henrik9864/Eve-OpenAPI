@@ -34,6 +34,8 @@ namespace EveOpenApi
 
 		internal ResponseManager ResponseManager { get; }
 
+		internal EventManager EventManager { get; }
+
 		internal ApiConfig Config { get; }
 
 		#endregion
@@ -53,6 +55,7 @@ namespace EveOpenApi
 			RequestManager = new RequestManager(Client, this);
 			CacheManager = new CacheManager(Client, this);
 			ResponseManager = new ResponseManager(Client, this);
+			EventManager = new EventManager(Client, this);
 		}
 
 		public void ChangeLogin(ILogin login)
@@ -68,6 +71,16 @@ namespace EveOpenApi
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
 			{
 				return new ApiPath(this, path, pathItem);
+			}
+			else
+				throw new Exception($"The spec does not contain path '{path}'");
+		}
+
+		public ApiEventPath PathEvent(string path)
+		{
+			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
+			{
+				return new ApiEventPath(this, path, pathItem);
 			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");

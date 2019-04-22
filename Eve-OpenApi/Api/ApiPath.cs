@@ -11,12 +11,15 @@ namespace EveOpenApi.Api
 	{
 		public string Path { get; }
 
+		public ApiEventPath Event { get; }
+
 		OpenApiPathItem pathItem;
 		API parent;
 
 		public ApiPath(API parent, string path, OpenApiPathItem pathItem)
 		{
 			Path = path;
+			Event = new ApiEventPath(parent, path, pathItem);
 			this.pathItem = pathItem;
 			this.parent = parent;
 		}

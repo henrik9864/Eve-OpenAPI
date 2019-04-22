@@ -18,13 +18,30 @@ namespace EveOpenApi.Api
 
 		public ParsedParameters Parameters { get; }
 
-		public ApiRequest(string baseUrl, string path, string scope, HttpMethod method, ParsedParameters parametesr)
+		public ApiRequest(string baseUrl, string path, string scope, HttpMethod method, ParsedParameters parameters)
 		{
 			BaseUrl = baseUrl;
 			Path = path;
 			Scope = scope;
 			Method = method;
-			Parameters = parametesr;
+			Parameters = parameters;
+		}
+
+		public override int GetHashCode()
+		{
+			return GetHashCode(0);
+		}
+
+		public int GetHashCode(int index)
+		{
+			int hash = 17;
+			hash *= 23 + BaseUrl.GetHashCode();
+			hash *= 23 + Path.GetHashCode();
+			hash *= 23 + Scope.GetHashCode();
+			hash *= 23 + Method.GetHashCode();
+			hash *= 23 + Parameters.GetHashCode(index);
+
+			return hash;
 		}
 
 		public string GetRequestUrl(int index)

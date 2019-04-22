@@ -46,7 +46,7 @@ namespace EveOpenApi.Managers
 			return await API.CacheManager.GetResponse<T>(request);
 		}
 
-		ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters);
 			string baseUrl = $"{API.Spec.Servers[0].Url}";
