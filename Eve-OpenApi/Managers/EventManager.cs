@@ -107,8 +107,6 @@ namespace EveOpenApi.Managers
 
 				if (semaphore.IsCompleted)
 					semaphore = trigger.WaitAsync();
-
-				Console.WriteLine();
 			}
 		}
 
@@ -121,10 +119,7 @@ namespace EveOpenApi.Managers
 		{
 			DateTime expired = default;
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
-			{
-				Console.WriteLine($"Updating {i}");
 				expired = await ProcessRequest(request, i);
-			}
 
 			requests.Add(expired, request);
 		}

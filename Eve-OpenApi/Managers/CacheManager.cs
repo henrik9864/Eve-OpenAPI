@@ -199,8 +199,6 @@ namespace EveOpenApi.Managers
 			if (response is ApiError)
 			{
 				ApiError error = response as ApiError;
-
-				Console.WriteLine(error.StatusCode);
 				if (error.StatusCode == System.Net.HttpStatusCode.NotModified)
 				{
 					TryHitCache(request, index, false, out response);
