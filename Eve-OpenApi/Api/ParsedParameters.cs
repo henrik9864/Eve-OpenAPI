@@ -14,12 +14,15 @@ namespace EveOpenApi.Api
 
 		public List<KeyValuePair<string, List<string>>> PathParameters { get; }
 
-		public ParsedParameters(int maxLength, List<KeyValuePair<string, List<string>>> queries, List<KeyValuePair<string, List<string>>> headers, List<KeyValuePair<string, List<string>>> pathParameters)
+		public List<string> Users { get; }
+
+		public ParsedParameters(int maxLength, List<KeyValuePair<string, List<string>>> queries, List<KeyValuePair<string, List<string>>> headers, List<KeyValuePair<string, List<string>>> pathParameters, List<string> users)
 		{
 			MaxLength = maxLength;
 			Queries = queries;
 			Headers = headers;
 			PathParameters = pathParameters;
+			Users = users;
 		}
 
 		public override int GetHashCode()

@@ -38,6 +38,11 @@ namespace EveOpenApi.Api
 		public string UserAgent { get; set; }
 
 		/// <summary>
+		/// Default user to user for tokens.
+		/// </summary>
+		public string DefaultUser { get; set; }
+
+		/// <summary>
 		/// Url to swager spec for the api, usually set by the IApiConfig
 		/// </summary>
 		public virtual string SpecURL { get; set; }

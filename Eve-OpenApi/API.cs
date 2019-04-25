@@ -24,7 +24,7 @@ namespace EveOpenApi
 
 		public OpenApiDocument Spec { get; private set; }
 
-		public string Test { get; }
+		public string DefaultUser { get; private set; }
 
 		#region Internal
 
@@ -43,7 +43,6 @@ namespace EveOpenApi
 		public API(ILogin login, IApiConfig config)
 			: this(login, SpecFromUrl(config.SpecURL), (ApiConfig)config)
 		{
-			Test = config.SpecURL;
 		}
 
 		public API(ILogin login, OpenApiDocument spec, ApiConfig config)
@@ -51,6 +50,7 @@ namespace EveOpenApi
 			Login = login;
 			Spec = spec;
 			Config = config;
+			DefaultUser = Config.DefaultUser;
 
 			RequestManager = new RequestManager(Client, this);
 			CacheManager = new CacheManager(Client, this);
@@ -70,7 +70,10 @@ namespace EveOpenApi
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
 			{
-				return new ApiPath(this, path, pathItem);
+				if (string.IsNullOrEmpty(DefaultUser))
+					throw new Exception("Default user cannot be null or empty");
+
+				return new ApiPath(this, path, DefaultUser, pathItem);
 			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
@@ -80,7 +83,10 @@ namespace EveOpenApi
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
 			{
-				return new ApiEventPath(this, path, pathItem);
+				if (string.IsNullOrEmpty(DefaultUser))
+					throw new Exception("Default user cannot be null or empty");
+
+				return new ApiEventPath(this, path, DefaultUser, pathItem);
 			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");

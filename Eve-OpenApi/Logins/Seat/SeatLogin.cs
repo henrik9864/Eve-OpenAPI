@@ -11,26 +11,37 @@ namespace EveOpenApi
 	{
 		public IInterfaceSetup Setup { get; }
 
-		public IToken this[string scope]
+		public IToken this[string user, string scope]
 		{
 			get
 			{
-				return GetToken((Scope)scope);
+				return GetToken(user, (Scope)scope);
 			}
 		}
 
-		List<IToken> tokens;
+		Dictionary<string, List<IToken>> userTokens;
 
-		public SeatLogin(string token)
+		public SeatLogin(string user, string token)
 		{
 			Setup = new SeatInterfaceSetup();
-			tokens = new List<IToken>();
+			userTokens = new Dictionary<string, List<IToken>>();
+			AddToken(user, token);
+		}
+
+		public void AddToken(string user, string token)
+		{
+			if (!userTokens.TryGetValue(user, out List<IToken> tokens))
+			{
+				tokens = new List<IToken>();
+				userTokens.Add(user, tokens);
+			}
+
 			tokens.Add(new SeatToken(token));
 		}
 
-		public IToken GetToken(IScope scope)
+		public IToken GetToken(string user, IScope scope)
 		{
-			IToken token = tokens.Find(a => a.Scope.IsSubset(scope));
+			IToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 
 			if (token == null)
 				throw new Exception($"No token with scope '{scope}' found");
@@ -38,16 +49,10 @@ namespace EveOpenApi
 			return token;
 		}
 
-		public bool TryGetToken(IScope scope, out IToken token)
+		public bool TryGetToken(string user, IScope scope, out IToken token)
 		{
-			token = tokens.Find(a => a.Scope.IsSubset(scope));
+			token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 			return token != null;
-		}
-
-		public async Task<IToken> AddToken(IScope scope)
-		{
-			await Task.CompletedTask;
-			throw new Exception("Unable to create a new SeAT token");
 		}
 	}
 }

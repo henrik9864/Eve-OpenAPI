@@ -15,14 +15,17 @@ namespace EveOpenApi.Api
 
 		public Dictionary<string, List<object>> Parameters { get; }
 
+		public List<string> Users { get; }
+
 		OpenApiPathItem pathItem;
 		API parent;
 
-		public ApiEventMethod(string path, OperationType operation, Dictionary<string, List<object>> parameters, OpenApiPathItem pathItem, API parent)
+		public ApiEventMethod(string path, OperationType operation, Dictionary<string, List<object>> parameters, List<string> users, OpenApiPathItem pathItem, API parent)
 		{
 			Path = path;
 			Operation = operation;
 			Parameters = parameters;
+			Users = users;
 			this.pathItem = pathItem;
 			this.parent = parent;
 		}
@@ -75,7 +78,7 @@ namespace EveOpenApi.Api
 
 		ApiRequest GetRequest(EventType type)
 		{
-			return parent.EventManager.GetRequest(Operation, type, Path, Parameters, GetOperation(Operation));
+			return parent.EventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
 		}
 
 		OpenApiOperation GetOperation(OperationType type)

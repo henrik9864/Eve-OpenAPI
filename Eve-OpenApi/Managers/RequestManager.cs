@@ -24,9 +24,9 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<ApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public async Task<List<ApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			ApiRequest request = GetRequest(path, type, parameters, operation);
+			ApiRequest request = GetRequest(path, type, parameters, users, operation);
 			return await API.CacheManager.GetResponse(request);
 		}
 
@@ -40,15 +40,15 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<ApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public async Task<List<ApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			ApiRequest request = GetRequest(path, type, parameters, operation);
+			ApiRequest request = GetRequest(path, type, parameters, users, operation);
 			return await API.CacheManager.GetResponse<T>(request);
 		}
 
-		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			var parsed = ParseParameters(operation, parameters);
+			var parsed = ParseParameters(operation, parameters, users);
 			string baseUrl = $"{API.Spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
@@ -62,7 +62,7 @@ namespace EveOpenApi.Managers
 		/// <param name="operation"></param>
 		/// <param name="parameters"></param>
 		/// <returns></returns>
-		ParsedParameters ParseParameters(OpenApiOperation operation, Dictionary<string, List<object>> parameters)
+		ParsedParameters ParseParameters(OpenApiOperation operation, Dictionary<string, List<object>> parameters, List<string> users)
 		{
 			int maxLength = 1;
 			var queries = new List<KeyValuePair<string, List<string>>>();
@@ -100,7 +100,10 @@ namespace EveOpenApi.Managers
 					throw new Exception($"Required parameter '{item.Name}' not supplied.");
 			}
 
-			return new ParsedParameters(maxLength, queries, headers, pathParameters);
+			if (users.Count != 1 && users.Count != maxLength)
+				throw new Exception("Number of users must be 1 or same count as batch parameters");
+
+			return new ParsedParameters(maxLength, queries, headers, pathParameters, users);
 		}
 
 		/// <summary>

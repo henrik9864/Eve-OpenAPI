@@ -19,11 +19,11 @@ namespace EveOpenApi
 
 		public IInterfaceSetup Setup { get; }
 
-		public IToken this[string scope]
+		public IToken this[string user, string scope]
 		{
 			get
 			{
-				return GetToken((Scope)scope);
+				return GetToken(user, (Scope)scope);
 			}
 		}
 
@@ -32,8 +32,6 @@ namespace EveOpenApi
 		public string ClientSecret { get; }
 
 		public string Callback { get; }
-
-		public string CurrentUser { get; private set; }
 
 		Dictionary<string, List<IToken>> userTokens;
 
@@ -67,23 +65,20 @@ namespace EveOpenApi
 			EveToken token = await EveAuthentication.GetWebToken(scope, code, ClientID, ClientSecret);
 			AddToken(token);
 
-			if (string.IsNullOrEmpty(CurrentUser))
-				CurrentUser = token.Name;
-
 			return token;
 		}
 
-		public bool TryGetToken(IScope scope, out IToken token)
+		public bool TryGetToken(string user, IScope scope, out IToken token)
 		{
-			userTokens.TryGetValue(CurrentUser, out List<IToken> tokens);
+			userTokens.TryGetValue(user, out List<IToken> tokens);
 
 			token = tokens?.Find(a => a.Scope.IsSubset(scope));
 			return token != null;
 		}
 
-		public IToken GetToken(IScope scope)
+		public IToken GetToken(string user, IScope scope)
 		{
-			IToken token = userTokens[CurrentUser].Find(a => a == scope);
+			IToken token = userTokens[user].Find(a => a == scope);
 
 			if (token == null)
 				throw new Exception($"No token with scope '{scope}' found");
@@ -95,14 +90,6 @@ namespace EveOpenApi
 		{
 			var dicList = userTokens.ToList();
 			return dicList.ConvertAll(a => a.Key);
-		}
-
-		public void ChangeUser(string user)
-		{
-			if (userTokens.ContainsKey(user))
-				CurrentUser = user;
-			else
-				throw new Exception("Invalid user.");
 		}
 
 		void AddToken(EveToken token)

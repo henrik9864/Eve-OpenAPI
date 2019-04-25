@@ -71,8 +71,7 @@ namespace EveOpenApi.Managers
 
 		async Task<int> AddToRequestQueue(ApiRequest request)
 		{
-			if (API.Login != null)
-				await AddToken(request);
+			await AddToken(request);
 
 			if (string.IsNullOrEmpty(API.Config.UserAgent))
 				throw new Exception("User-Agent must be set.");
@@ -82,14 +81,23 @@ namespace EveOpenApi.Managers
 			return requestQueue.AddRequest(request);
 		}
 
+		async Task AddToken(ApiRequest request)
+		{
+			if (API.Login != null)
+			{
+				for (int i = 0; i < request.Parameters.MaxLength; i++)
+					await AddToken(request, i);
+			}
+		}
+
 		/// <summary>
 		/// Add access token to the request where it is sepcified to be
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		async Task AddToken(ApiRequest request)
+		async Task AddToken(ApiRequest request, int index)
 		{
-			if (!API.Login.TryGetToken((Scope)request.Scope, out IToken token))
+			if (!API.Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
 			{
 				// Temporary removed untill i can figure out a solution
 				// Might not be so temporary
@@ -108,13 +116,10 @@ namespace EveOpenApi.Managers
 					request.SetHeader(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				case "query":
-					if (request.Parameters.Queries.Exists(a => a.Key == API.Login.Setup.TokenName))
-						return;
-
-					request.AddQuery(API.Login.Setup.TokenName, await token.GetToken());
+					request.AddToQuery(API.Login.Setup.TokenName, await token.GetToken());
 					break;
 				default:
-					throw new Exception("Unknwon access token location");
+					throw new Exception("Unknown access token location");
 			}
 		}
 
@@ -140,7 +145,7 @@ namespace EveOpenApi.Managers
 		void SaveToCache(ApiRequest request, int index, ApiResponse response)
 		{
 			if (!cache.TryAdd(request.GetHashCode(), response))
-				cache[request.GetHashCode()] = response;
+				cache[request.GetHashCode(index)] = response;
 		}
 
 		/// <summary>

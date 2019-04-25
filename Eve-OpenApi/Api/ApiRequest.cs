@@ -52,14 +52,32 @@ namespace EveOpenApi.Api
 				output = output.Replace($"{{{item.Key}}}", $"{IndexOrLast(item.Value, index)}");
 
 			foreach (var item in Parameters.Queries)
+			{
+				Console.WriteLine($"	{item.Key}: {item.Value.Count}");
 				output += $"{item.Key}={IndexOrLast(item.Value, index)}&";
+			}
 
 			return output.Substring(0, output.Length - 1);
 		}
 
-		public void AddQuery(string name, string value)
+		public string GetUser(int index)
 		{
-			Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
+			if (Parameters.Users.Count == 1)
+				return Parameters.Users[0];
+
+			return Parameters.Users[index];
+		}
+
+		public void AddToQuery(string name, string value)
+		{
+			int kvpIndex = Parameters.Queries.FindIndex(x => x.Key == name);
+
+			Console.WriteLine($"Added {kvpIndex} {name}");
+
+			if (kvpIndex == -1)
+				Parameters.Queries.Add(new KeyValuePair<string, List<string>>(name, new List<string> { value }));
+			else
+				Parameters.Queries[kvpIndex].Value.Add(value);
 		}
 
 		public void SetHeader(string name, string value)

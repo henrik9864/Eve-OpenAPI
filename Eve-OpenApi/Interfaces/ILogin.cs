@@ -12,12 +12,12 @@ namespace EveOpenApi.Interfaces
 	{
 		IInterfaceSetup Setup { get; }
 
-		IToken this[string scope] { get; }
+		IToken this[string user, string scope] { get; }
 
-		bool TryGetToken(IScope scope, out IToken token);
+		bool TryGetToken(string user, IScope scope, out IToken token);
 
 		//Task<IToken> AddToken(IScope scope);
 
-		IToken GetToken(IScope scope);
+		IToken GetToken(string user, IScope scope);
 	}
 }

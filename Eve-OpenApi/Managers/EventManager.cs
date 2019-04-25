@@ -39,30 +39,22 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		public ApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, OpenApiOperation operation)
+		public ApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			if (!API.Config.EnableEventQueue)
 				throw new Exception("Events has been disabled. Enable them via the 'EnableEventQueue' property in the config.");
 
-			// TODO check all request paths
-			ApiRequest request = API.RequestManager.GetRequest(path, type, parameters, operation);
+			ApiRequest request = API.RequestManager.GetRequest(path, type, parameters, users, operation);
+			requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
+
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 			{
 				if (!Events.ContainsKey((request.GetHashCode(i), eventType)))
-				{
 					Events.Add((request.GetHashCode(i), eventType), null);
-
-					if (!requests.Any(x =>
-						x.Value.Parameters.MaxLength == request.Parameters.MaxLength &&
-						x.Value.GetHashCode(i) == request.GetHashCode(i)))
-					{
-						requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
-					}
-
-					if (trigger.CurrentCount == 0)
-						trigger.Release();
-				}
 			}
+
+			if (trigger.CurrentCount == 0)
+				trigger.Release();
 
 			if (!backroundRunning)
 				StartBackgroundLoop();
@@ -115,6 +107,8 @@ namespace EveOpenApi.Managers
 
 				if (semaphore.IsCompleted)
 					semaphore = trigger.WaitAsync();
+
+				Console.WriteLine();
 			}
 		}
 
@@ -128,7 +122,7 @@ namespace EveOpenApi.Managers
 			DateTime expired = default;
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 			{
-				Console.WriteLine($"Update {i}");
+				Console.WriteLine($"Updating {i}");
 				expired = await ProcessRequest(request, i);
 			}
 

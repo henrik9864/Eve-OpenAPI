@@ -40,6 +40,7 @@ namespace EveOpenApi.Managers
 		async Task<HttpResponseMessage> GetHttpResponse(ApiRequest request, int index)
 		{
 			Uri requestUri = new Uri(request.GetRequestUrl(index));
+			//Console.WriteLine($"Request uri {index}:\n{requestUri}");
 			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);
 
 			foreach (var item in request.Parameters.Headers)

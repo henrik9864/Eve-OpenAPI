@@ -11,17 +11,28 @@ namespace EveOpenApi.Api
 	{
 		public string Path { get; }
 
-		public ApiEventPath Event { get; }
+		public List<string> DefaultUsers { get; private set; }
 
 		OpenApiPathItem pathItem;
 		API parent;
 
-		public ApiPath(API parent, string path, OpenApiPathItem pathItem)
+		public ApiPath(API parent, string path, string defaultUser, OpenApiPathItem pathItem)
 		{
 			Path = path;
-			Event = new ApiEventPath(parent, path, pathItem);
 			this.pathItem = pathItem;
 			this.parent = parent;
+			DefaultUsers = new List<string>() { defaultUser };
+		}
+
+		public ApiPath SetUsers(params string[] users)
+		{
+			if (users.Any(x => string.IsNullOrEmpty(x)))
+				throw new Exception("Users cannot be null or empty");
+
+			DefaultUsers = new List<string>();
+			DefaultUsers.AddRange(users);
+
+			return this;
 		}
 
 		#region Get
@@ -285,13 +296,13 @@ namespace EveOpenApi.Api
 		async Task<List<ApiResponse>> RunBatch(OperationType type, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
-			return await parent.RequestManager.RequestBatch(Path, type, parameters, operation);
+			return await parent.RequestManager.RequestBatch(Path, type, parameters, DefaultUsers, operation);
 		}
 
 		async Task<List<ApiResponse<T>>> RunBatch<T>(OperationType type, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
-			return await parent.RequestManager.RequestBatch<T>(Path, type, parameters, operation);
+			return await parent.RequestManager.RequestBatch<T>(Path, type, parameters, DefaultUsers, operation);
 		}
 
 		OpenApiOperation GetOperation(OperationType type)

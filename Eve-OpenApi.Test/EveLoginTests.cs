@@ -75,10 +75,10 @@ namespace Tests
 		[Test]
 		public async Task Token()
 		{
-			Assert.IsTrue(login.TryGetToken((Scope)"", out IToken token));
-			Assert.IsFalse(login.TryGetToken((Scope)"esi-location.read_location.v1", out token));
+			Assert.IsTrue(login.TryGetToken("Prople Dudlestreis", (Scope)"", out IToken token));
+			Assert.IsFalse(login.TryGetToken("Prople Dudlestreis", (Scope)"esi-location.read_location.v1", out token));
 
-			Assert.IsTrue(login.TryGetToken((Scope)"esi-mail.read_mail.v1", out token));
+			Assert.IsTrue(login.TryGetToken("Prople Dudlestreis", (Scope)"esi-mail.read_mail.v1", out token));
 
 			Assert.IsTrue(token.Scope.IsSubset((Scope)"esi-mail.read_mail.v1"));
 
