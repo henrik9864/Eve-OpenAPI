@@ -69,12 +69,7 @@ namespace EveOpenApi
 		public ApiPath Path(string path)
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
-			{
-				if (string.IsNullOrEmpty(DefaultUser))
-					throw new Exception("Default user cannot be null or empty");
-
 				return new ApiPath(this, path, DefaultUser, pathItem);
-			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
 		}
@@ -82,12 +77,7 @@ namespace EveOpenApi
 		public ApiEventPath PathEvent(string path)
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
-			{
-				if (string.IsNullOrEmpty(DefaultUser))
-					throw new Exception("Default user cannot be null or empty");
-
 				return new ApiEventPath(this, path, DefaultUser, pathItem);
-			}
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
 		}

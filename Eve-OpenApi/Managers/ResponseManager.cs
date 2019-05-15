@@ -43,7 +43,7 @@ namespace EveOpenApi.Managers
 			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);
 
 			foreach (var item in request.Parameters.Headers)
-				requestMessage.Headers.Add(item.Key, item.Value);
+				requestMessage.Headers.TryAddWithoutValidation(item.Key, item.Value);
 
 			// Throttle requests if users send too many errors.
 			if (errorRemain <= 0 && errorReset > DateTime.Now)

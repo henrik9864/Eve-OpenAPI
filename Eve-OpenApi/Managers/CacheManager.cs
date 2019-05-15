@@ -97,6 +97,9 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		async Task AddToken(ApiRequest request, int index)
 		{
+			if (string.IsNullOrEmpty(request.Scope))
+				return;
+
 			if (!API.Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
 			{
 				// Temporary removed untill i can figure out a solution

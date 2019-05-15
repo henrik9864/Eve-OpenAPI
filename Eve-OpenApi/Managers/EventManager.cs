@@ -135,6 +135,9 @@ namespace EveOpenApi.Managers
 			API.CacheManager.TryHitCache(request, index, false, out ApiResponse old);
 			ApiResponse now = await API.CacheManager.GetResponse(request, index);
 
+			if (now is ApiError)
+				throw new Exception(now.Response);
+
 			TryInvokeEvent(EventType.Update, request.GetHashCode(index), now, old);
 
 			if (old != null && now.GetHashCode() != old?.GetHashCode())
