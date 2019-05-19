@@ -189,11 +189,7 @@ namespace EveOpenApi.Managers
 		async Task<ApiResponse> ProcessResponse(ApiRequest request, int index)
 		{
 			if (API.Config.UseCache && TryHitCache(request, index, true, out ApiResponse response))
-			{
-				Console.WriteLine(response.Expired);
-				Console.WriteLine($"Hit! {DateTime.UtcNow < response.Expired}");
 				return response;
-			}
 
 			TryGetETag(request, index, out string eTag);
 			request.SetHeader("If-None-Match", eTag);

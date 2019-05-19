@@ -5,8 +5,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>7.1</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.3.1</Version>
-    <Authors>Henrik Strocka</Authors>
+    <Version>0.3.2</Version>
+    <Authors>Henrik</Authors>
     <Company />
     <Product />
     <Description>A library for accessing EVE online related API's following the Swagger specification</Description>
@@ -15,9 +15,8 @@
     <StartupObject />
     <RepositoryUrl>https://github.com/henrik9864/EsiNet</RepositoryUrl>
     <PackageLicenseUrl>https://github.com/henrik9864/EsiNet/blob/master/LICENSE</PackageLicenseUrl>
-    <Copyright>(c) Henrik Strocka</Copyright>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>EVE Esi</PackageTags>
+    <PackageTags>EVE Esi OpenAPI</PackageTags>
     <PackageId>Eve-OpenApi</PackageId>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
