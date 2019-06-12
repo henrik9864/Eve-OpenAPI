@@ -91,7 +91,7 @@ namespace EveOpenApi
 
 		public IToken GetToken(string user, IScope scope)
 		{
-			IToken token = userTokens[user].Find(a => a == scope);
+			IToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 
 			if (token == null)
 				throw new Exception($"No token with scope '{scope}' found");

@@ -50,7 +50,7 @@ namespace EveOpenApi
 			}
 		}
 
-		public bool IsSubset(IScope scope)
+		public bool IsSubset(IReadOnlyScope scope)
 		{
 			if (string.IsNullOrWhiteSpace(scope.ScopeString))
 				return true;

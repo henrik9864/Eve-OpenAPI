@@ -57,7 +57,6 @@ namespace EveOpenApi.Eve
 		{
 			if (httpClient != default && Client == null)
 				Client = httpClient;
-
 			List<string> content = JsonConvert.DeserializeObject<List<string>>(json);
 
 			Scope scope = content[0];

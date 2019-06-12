@@ -18,8 +18,6 @@ namespace EveOpenApi.Interfaces
 		/// </summary>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		bool IsSubset(IScope scope);
-
-		bool Equals(IScope other);
+		bool IsSubset(IReadOnlyScope scope);
 	}
 }
