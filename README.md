@@ -6,7 +6,7 @@ A library for accessing EVE online's ESI api.
 ### Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.2.0
+Install-Package Eve-OpenApi -Version 0.3.3
 ```
 
 ### Example
