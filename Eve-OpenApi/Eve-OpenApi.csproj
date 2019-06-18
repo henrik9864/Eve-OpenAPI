@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RootNamespace>EveOpenApi</RootNamespace>
     <LangVersion>7.1</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.3.3</Version>
+    <Version>0.3.5</Version>
     <Authors>Henrik</Authors>
     <Company />
     <Product />
@@ -23,9 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="jose-jwt" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.1.2" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />

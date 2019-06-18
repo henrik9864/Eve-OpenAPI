@@ -1,6 +1,7 @@
 ﻿using EveOpenApi;
 using EveOpenApi.Api;
 using EveOpenApi.Api.Configs;
+using EveOpenApi.DependencyInjection;
 using EveOpenApi.Eve;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Seat;
@@ -25,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
 				config.Bind("EsiConfig", esiConfig);
 
 				return esiConfig;
-				
+
 			});
 			services.AddScoped<API>();
 
@@ -36,7 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
 		{
 			services.AddSingleton<HttpClient>();
 			services.Configure<EveWebConfig>(config.GetSection("EveConfig"));
-			services.AddSingleton<ILogin, EveWebLogin>();
+			services.AddSingleton<ILogin, EveWebLoginExtension>();
 
 			return services;
 		}

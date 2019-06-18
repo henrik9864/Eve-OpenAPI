@@ -1,6 +1,5 @@
 ﻿using EveOpenApi.Eve;
 using EveOpenApi.Interfaces;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,12 +33,6 @@ namespace EveOpenApi
 		public string Callback { get; }
 
 		Dictionary<string, List<IToken>> userTokens;
-
-		public EveWebLogin(IOptions<EveWebConfig> options, HttpClient client)
-			: this(options.Value.ClientID, options.Value.ClientSecret, options.Value.CallbackUrl, client)
-		{
-
-		}
 
 		public EveWebLogin(string clientID, string clientSecret, string callback, HttpClient client = default)
 		{
