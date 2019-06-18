@@ -33,6 +33,11 @@ namespace EveOpenApi.Api
 		public bool UseCache { get; set; } = true;
 
 		/// <summary>
+		/// If you want to include the auth header even if no auth is required
+		/// </summary>
+		public bool AlwaysIncludeAuthHeader { get; set; } = false;
+
+		/// <summary>
 		/// User agent to send to ESI.
 		/// </summary>
 		public string UserAgent { get; set; }

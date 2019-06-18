@@ -13,8 +13,6 @@ namespace EveOpenApi.Managers
 {
 	internal class ResponseManager : BaseManager
 	{
-		public event Action<int, ApiResponse> RequestFinished;
-
 		int errorRemain = 100;
 		DateTime errorReset;
 

@@ -45,13 +45,13 @@ namespace EveOpenApi.Managers
 
 		public async Task<ApiResponse> GetResponse(ApiRequest request, int index)
 		{
-			await AddToken(request);
+			await API.TokenManager.AddAuthTokens(request);
 			return await ProcessResponse(request, index);
 		}
 
 		public async Task<ApiResponse<T>> GetResponse<T>(ApiRequest request, int index)
 		{
-			await AddToken(request);
+			await API.TokenManager.AddAuthTokens(request);
 			ApiResponse response = await ProcessResponse(request, index);
 			return response.ToType<T>();
 		}
@@ -71,7 +71,7 @@ namespace EveOpenApi.Managers
 
 		async Task<int> AddToRequestQueue(ApiRequest request)
 		{
-			await AddToken(request);
+			await API.TokenManager.AddAuthTokens(request);
 
 			if (string.IsNullOrEmpty(API.Config.UserAgent))
 				throw new Exception("User-Agent must be set.");
@@ -79,51 +79,6 @@ namespace EveOpenApi.Managers
 			request.SetHeader("User-Agent", API.Config.UserAgent);
 
 			return requestQueue.AddRequest(request);
-		}
-
-		async Task AddToken(ApiRequest request)
-		{
-			if (API.Login != null)
-			{
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					await AddToken(request, i);
-			}
-		}
-
-		/// <summary>
-		/// Add access token to the request where it is sepcified to be
-		/// </summary>
-		/// <param name="request"></param>
-		/// <returns></returns>
-		async Task AddToken(ApiRequest request, int index)
-		{
-			if (string.IsNullOrEmpty(request.Scope))
-				return;
-
-			if (!API.Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
-			{
-				// Temporary removed untill i can figure out a solution
-				// Might not be so temporary
-				//if (API.Config.AutoRequestScope)
-				//	token = await API.Login.AddToken((Scope)request.Scope);
-				//else
-					throw new Exception($"No token with scope '{request.Scope}'");
-			}
-
-			switch (API.Login.Setup.TokenLocation)
-			{
-				case "header":
-					if (request.Parameters.Headers.Exists(a => a.Key == API.Login.Setup.TokenName))
-						return;
-
-					request.SetHeader(API.Login.Setup.TokenName, await token.GetToken());
-					break;
-				case "query":
-					request.AddToQuery(API.Login.Setup.TokenName, await token.GetToken());
-					break;
-				default:
-					throw new Exception("Unknown access token location");
-			}
 		}
 
 		/// <summary>
@@ -179,9 +134,7 @@ namespace EveOpenApi.Managers
 		{
 			List<ApiResponse> esiResponses = new List<ApiResponse>();
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
-			{
 				esiResponses.Add(await ProcessResponse(request, i));
-			}
 
 			return esiResponses;
 		}

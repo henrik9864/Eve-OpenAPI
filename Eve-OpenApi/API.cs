@@ -35,6 +35,8 @@ namespace EveOpenApi
 
 		internal EventManager EventManager { get; }
 
+		internal TokenManager TokenManager { get; }
+
 		internal ApiConfig Config { get; }
 
 		#endregion
@@ -55,6 +57,7 @@ namespace EveOpenApi
 			CacheManager = new CacheManager(Client, this);
 			ResponseManager = new ResponseManager(Client, this);
 			EventManager = new EventManager(Client, this);
+			TokenManager = new TokenManager(Client, this);
 		}
 
 		public void ChangeLogin(ILogin login)
