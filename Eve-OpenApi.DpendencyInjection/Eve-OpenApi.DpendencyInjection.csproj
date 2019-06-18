@@ -4,6 +4,14 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>EveOpenApi.DpendencyInjection</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Henrik</Authors>
+    <Company />
+    <Product>Eve-OpenApi</Product>
+    <Description>Extension methods for adding Asp net core support</Description>
+    <RepositoryUrl>https://github.com/henrik9864/EsiNet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>EVE Esi OpenAPI AspNet</PackageTags>
+    <Version>0.3.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
