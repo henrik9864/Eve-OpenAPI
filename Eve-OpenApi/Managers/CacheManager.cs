@@ -1,6 +1,7 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Enums;
 using EveOpenApi.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,13 @@ namespace EveOpenApi.Managers
 {
 	internal class CacheManager : BaseManager
 	{
-		Dictionary<int, ApiResponse> cache = new Dictionary<int, ApiResponse>();
+		// Move options to EveOpenApi config
+		MemoryCache cache = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 1024,
+		});
+
+		//Dictionary<int, ApiResponse> cache = new Dictionary<int, ApiResponse>();
 		RequestQueueAsync<ApiRequest, List<ApiResponse>> requestQueue;
 
 		public CacheManager(HttpClient client, API api) : base(client, api)
@@ -82,17 +89,14 @@ namespace EveOpenApi.Managers
 		}
 
 		/// <summary>
-		/// Check if request has been cached.
+		/// Check if request has been cached. And not expired
 		/// </summary>
 		/// <param name="request"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
 		public bool TryHitCache(ApiRequest request, int index, bool validateTime, out ApiResponse response)
 		{
-			if (cache.TryGetValue(request.GetHashCode(index), out response) && (!validateTime || DateTime.UtcNow < response.Expired))
-				return true;
-
-			return false;
+			return cache.TryGetValue(request.GetHashCode(index), out response) && (!validateTime || DateTime.UtcNow < response.Expired);
 		}
 
 		/// <summary>
@@ -102,8 +106,7 @@ namespace EveOpenApi.Managers
 		/// <param name="response"></param>
 		void SaveToCache(ApiRequest request, int index, ApiResponse response)
 		{
-			if (!cache.TryAdd(request.GetHashCode(), response))
-				cache[request.GetHashCode(index)] = response;
+			cache.Set(request.GetHashCode(index), response, response.Expired);
 		}
 
 		/// <summary>
