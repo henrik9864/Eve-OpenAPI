@@ -13,10 +13,12 @@ namespace EveOpenApi.Managers
 	internal class RequestManager : BaseManager, IRequestManager
 	{
 		ICacheManager cacheManager;
+		OpenApiDocument spec;
 
-		public RequestManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager) : base(client, login, config)
+		public RequestManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager, OpenApiDocument spec) : base(client, login, config)
 		{
 			this.cacheManager = cacheManager;
+			this.spec = spec;
 		}
 
 		/// <summary>
@@ -53,7 +55,7 @@ namespace EveOpenApi.Managers
 		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters, users);
-			string baseUrl = Config.SpecURL;//$"{API.Spec.Servers[0].Url}";
+			string baseUrl = $"{spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 

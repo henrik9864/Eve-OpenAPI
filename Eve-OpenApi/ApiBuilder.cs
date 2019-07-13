@@ -3,10 +3,13 @@ using EveOpenApi.Api.Factories;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Readers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http;
 using System.Reflection.Metadata;
 using System.Text;
@@ -65,10 +68,12 @@ namespace EveOpenApi
 			HttpClient client = new HttpClient();
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
 
+			OpenApiDocument spec = SpecFromUrl(config.SpecURL);
+
 			ITokenManager tokenManager = new TokenManager(client, config, login);
 			IResponseManager responseManager = new ResponseManager(client,config, login);
 			ICacheManager cacheManager = new CacheManager(client, config, login, memoryCache, tokenManager, responseManager);
-			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager);
+			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager, spec);
 			IEventManager eventManager = new EventManager(client, config, login, cacheManager, requestManager);
 
 			IFactory<IApiPath> pathFacotry = new ApiPathFactory(requestManager);
@@ -76,6 +81,17 @@ namespace EveOpenApi
 			IFactory<IApiEventPath> eventPathFactory = new ApiEventPathFactory(eventMethodFactory);
 
 			return new API(login, config, pathFacotry, eventPathFactory);
+		}
+
+		OpenApiDocument SpecFromUrl(string specUrl)
+		{
+			string specString;
+			using (WebClient webClient = new WebClient())
+			{
+				specString = webClient.DownloadString(specUrl);
+			}
+
+			return new OpenApiStringReader().Read(specString, out OpenApiDiagnostic diagnostic);
 		}
 	}
 }
