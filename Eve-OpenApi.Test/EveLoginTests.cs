@@ -18,9 +18,9 @@ namespace Tests
 		[SetUp]
 		public void Setup()
 		{
-			SetupAsync().GetAwaiter().GetResult();
+			//SetupAsync().GetAwaiter().GetResult();
 		}
-
+		/*
 		async Task SetupAsync()
 		{
 			const string EnvironmentVariable = "TestDataDirectory";
@@ -122,5 +122,7 @@ namespace Tests
 
 			Assert.Pass();
 		}
+
+	*/
 	}
 }

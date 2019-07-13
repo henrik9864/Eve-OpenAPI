@@ -6,7 +6,7 @@ using System.Text;
 
 namespace EveOpenApi.Api
 {
-	public class ApiResponse
+	public class ApiResponse : IApiResponse
 	{
 		public string ETag { get; }
 
@@ -14,7 +14,19 @@ namespace EveOpenApi.Api
 
 		public DateTime Expired { get; private set; }
 
-		internal CacheControl CacheControl { get; }
+		DateTime IApiResponse.Expired
+		{
+			get
+			{
+				return Expired;
+			}
+			set
+			{
+				Expired = value;
+			}
+		}
+
+		public CacheControl CacheControl { get; }
 
 		string cacheControlString;
 
@@ -27,7 +39,7 @@ namespace EveOpenApi.Api
 			cacheControlString = cacheControl;
 		}
 
-		public void UpdateExpiery(ApiResponse newResponse)
+		public void UpdateExpiery(IApiResponse newResponse)
 		{
 			Expired = newResponse.Expired;
 		}
@@ -42,7 +54,7 @@ namespace EveOpenApi.Api
 			return hash;
 		}
 
-		public virtual ApiResponse<T> ToType<T>()
+		public virtual IApiResponse<T> ToType<T>()
 		{
 			return new ApiResponse<T>(ETag, Response, Expired, cacheControlString);
 		}

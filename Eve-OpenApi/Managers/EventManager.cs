@@ -1,5 +1,7 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Enums;
+using EveOpenApi.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -11,27 +13,27 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Managers
 {
-	public delegate void ApiUpdate(ApiResponse now, ApiResponse old);
+	public delegate void ApiUpdate(IApiResponse now, IApiResponse old);
 
-	internal class EventManager : BaseManager
+	internal class EventManager : BaseManager, IEventManager
 	{
 		public Dictionary<(int, EventType), ApiUpdate> Events { get; }
 
-		SortedList<DateTime, ApiRequest> requests;
+		SortedList<DateTime, IApiRequest> requests;
 		SemaphoreSlim trigger;
 
 		bool backroundRunning = false;
 
-		public EventManager(HttpClient client, API api) : base(client, api)
+		public EventManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config, IMemoryCache memoryCache) : base(client, api, managerContainer, config)
 		{
 			Events = new Dictionary<(int, EventType), ApiUpdate>();
 
-			requests = new SortedList<DateTime, ApiRequest>();
+			requests = new SortedList<DateTime, IApiRequest>();
 			trigger = new SemaphoreSlim(0, 1);
 		}
 
 		/// <summary>
-		/// Prep an path for an event subscription.
+		/// Prep a path for an event subscription.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="eventType"></param>
@@ -39,12 +41,12 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		public ApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public IApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			if (!API.Config.EnableEventQueue)
+			if (!Config.EnableEventQueue)
 				throw new Exception("Events has been disabled. Enable them via the 'EnableEventQueue' property in the config.");
 
-			ApiRequest request = API.RequestManager.GetRequest(path, type, parameters, users, operation);
+			IApiRequest request = Managers.RequestManager.GetRequest(path, type, parameters, users, operation);
 			requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
 
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -89,7 +91,7 @@ namespace EveOpenApi.Managers
 
 			while (true)
 			{
-				KeyValuePair<DateTime, ApiRequest> request = requests.FirstOrDefault();
+				KeyValuePair<DateTime, IApiRequest> request = requests.FirstOrDefault();
 				Task waitTask = Task.Delay(-1);
 
 				if (request.Value != default && request.Key.CompareTo(DateTime.UtcNow) != -1)
@@ -115,7 +117,7 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		async Task ProcessRequest(ApiRequest request)
+		async Task ProcessRequest(IApiRequest request)
 		{
 			DateTime expired = default;
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -130,10 +132,10 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index"></param>
 		/// <returns></returns>
-		async Task<DateTime> ProcessRequest(ApiRequest request, int index)
+		async Task<DateTime> ProcessRequest(IApiRequest request, int index)
 		{
-			API.CacheManager.TryHitCache(request, index, false, out ApiResponse old);
-			ApiResponse now = await API.CacheManager.GetResponse(request, index);
+			Managers.CacheManager.TryHitCache(request, index, false, out IApiResponse old);
+			IApiResponse now = await Managers.CacheManager.GetResponse(request, index);
 
 			if (now is ApiError)
 				throw new Exception(now.Response);
@@ -146,7 +148,7 @@ namespace EveOpenApi.Managers
 			return now.Expired;
 		}
 
-		void TryInvokeEvent(EventType eventType, int id, ApiResponse now, ApiResponse old)
+		void TryInvokeEvent(EventType eventType, int id, IApiResponse now, IApiResponse old)
 		{
 			if (!Events.TryGetValue((id, eventType), out ApiUpdate apiUpdate))
 				return;

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace EveOpenApi.Api
 {
-	internal class ApiRequest
+	internal class ApiRequest : IApiRequest
 	{
 		public string BaseUrl { get; }
 

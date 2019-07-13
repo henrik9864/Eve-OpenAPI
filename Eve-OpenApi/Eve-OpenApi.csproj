@@ -4,7 +4,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>EveOpenApi</RootNamespace>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.3.5</Version>
     <Authors>Henrik</Authors>
@@ -20,6 +20,7 @@
     <PackageTags>EVE Esi OpenAPI</PackageTags>
     <PackageId>Eve-OpenApi</PackageId>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Win32Resource />
   </PropertyGroup>
 
   <ItemGroup>

@@ -20,9 +20,9 @@ namespace Microsoft.Extensions.DependencyInjection
 		{
 			services.AddEve(config);
 
-			services.AddScoped<IApiConfig, ApiEsiConfig>(a =>
+			services.AddScoped<IApiConfig, EsiConfig>(a =>
 			{
-				ApiEsiConfig esiConfig = new ApiEsiConfig();
+				EsiConfig esiConfig = new EsiConfig();
 				config.Bind("EsiConfig", esiConfig);
 
 				return esiConfig;

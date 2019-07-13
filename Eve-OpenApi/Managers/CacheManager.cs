@@ -13,20 +13,15 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Managers
 {
-	internal class CacheManager : BaseManager
+	internal class CacheManager : BaseManager, ICacheManager
 	{
-		// Move options to EveOpenApi config
-		MemoryCache cache = new MemoryCache(new MemoryCacheOptions()
-		{
-			SizeLimit = 1024,
-		});
+		IMemoryCache cache;
+		RequestQueueAsync<IApiRequest, IList<IApiResponse>> requestQueue;
 
-		//Dictionary<int, ApiResponse> cache = new Dictionary<int, ApiResponse>();
-		RequestQueueAsync<ApiRequest, List<ApiResponse>> requestQueue;
-
-		public CacheManager(HttpClient client, API api) : base(client, api)
+		public CacheManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config, IMemoryCache memoryCache) : base(client, api, managerContainer, config)
 		{
-			requestQueue = new RequestQueueAsync<ApiRequest, List<ApiResponse>>(ProcessResponse);
+			requestQueue = new RequestQueueAsync<IApiRequest, IList<IApiResponse>>(ProcessResponse);
+			cache = memoryCache;
 		}
 
 		/// <summary>
@@ -34,38 +29,38 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public Task<List<ApiResponse>> GetResponse(ApiRequest request)
+		public Task<IList<IApiResponse>> GetResponse(IApiRequest request)
 		{
 			return ExecuteRequest(request);
 		}
 
-		public async Task<List<ApiResponse<T>>> GetResponse<T>(ApiRequest request)
+		public async Task<IList<IApiResponse<T>>> GetResponse<T>(IApiRequest request)
 		{
-			List<ApiResponse> responses = await ExecuteRequest(request);
+			IList<IApiResponse> responses = await ExecuteRequest(request);
 
-			List<ApiResponse<T>> returnResponses = new List<ApiResponse<T>>();
+			IList<IApiResponse<T>> returnResponses = new List<IApiResponse<T>>();
 			for (int i = 0; i < responses.Count; i++)
 				returnResponses.Add(responses[i].ToType<T>());
 
 			return returnResponses;
 		}
 
-		public async Task<ApiResponse> GetResponse(ApiRequest request, int index)
+		public async Task<IApiResponse> GetResponse(IApiRequest request, int index)
 		{
-			await API.TokenManager.AddAuthTokens(request);
+			await Managers.TokenManager.AddAuthTokens(request);
 			return await ProcessResponse(request, index);
 		}
 
-		public async Task<ApiResponse<T>> GetResponse<T>(ApiRequest request, int index)
+		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index)
 		{
-			await API.TokenManager.AddAuthTokens(request);
-			ApiResponse response = await ProcessResponse(request, index);
+			await Managers.TokenManager.AddAuthTokens(request);
+			IApiResponse response = await ProcessResponse(request, index);
 			return response.ToType<T>();
 		}
 
-		async Task<List<ApiResponse>> ExecuteRequest(ApiRequest request)
+		async Task<IList<IApiResponse>> ExecuteRequest(IApiRequest request)
 		{
-			if (API.Config.UseRequestQueue)
+			if (Config.UseRequestQueue)
 			{
 				int id = await AddToRequestQueue(request);
 				return await requestQueue.AwaitResponse(id);
@@ -76,14 +71,14 @@ namespace EveOpenApi.Managers
 			}
 		}
 
-		async Task<int> AddToRequestQueue(ApiRequest request)
+		async Task<int> AddToRequestQueue(IApiRequest request)
 		{
-			await API.TokenManager.AddAuthTokens(request);
+			await Managers.TokenManager.AddAuthTokens(request);
 
-			if (string.IsNullOrEmpty(API.Config.UserAgent))
+			if (string.IsNullOrEmpty(Config.UserAgent))
 				throw new Exception("User-Agent must be set.");
 
-			request.SetHeader("User-Agent", API.Config.UserAgent);
+			request.SetHeader("User-Agent", Config.UserAgent);
 
 			return requestQueue.AddRequest(request);
 		}
@@ -94,7 +89,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="response"></param>
 		/// <returns></returns>
-		public bool TryHitCache(ApiRequest request, int index, bool validateTime, out ApiResponse response)
+		public bool TryHitCache(IApiRequest request, int index, bool validateTime, out IApiResponse response)
 		{
 			return cache.TryGetValue(request.GetHashCode(index), out response) && (!validateTime || DateTime.UtcNow < response.Expired);
 		}
@@ -104,7 +99,7 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="requestUrl"></param>
 		/// <param name="response"></param>
-		void SaveToCache(ApiRequest request, int index, ApiResponse response)
+		void SaveToCache(IApiRequest request, int index, IApiResponse response)
 		{
 			cache.Set(request.GetHashCode(index), response, response.Expired);
 		}
@@ -116,9 +111,9 @@ namespace EveOpenApi.Managers
 		/// <param name="index"></param>
 		/// <param name="eTag"></param>
 		/// <returns></returns>
-		bool TryGetETag(ApiRequest request, int index, out string eTag)
+		bool TryGetETag(IApiRequest request, int index, out string eTag)
 		{
-			if (cache.TryGetValue(request.GetHashCode(index), out ApiResponse response))
+			if (cache.TryGetValue(request.GetHashCode(index), out IApiResponse response))
 			{
 				eTag = response.ETag;
 				return true;
@@ -133,34 +128,34 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		async Task<List<ApiResponse>> ProcessResponse(ApiRequest request)
+		async Task<IList<IApiResponse>> ProcessResponse(IApiRequest request)
 		{
-			List<ApiResponse> esiResponses = new List<ApiResponse>();
+			IList<IApiResponse> esiResponses = new List<IApiResponse>();
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
 				esiResponses.Add(await ProcessResponse(request, i));
 
 			return esiResponses;
 		}
 
-		async Task<ApiResponse> ProcessResponse(ApiRequest request, int index)
+		async Task<IApiResponse> ProcessResponse(IApiRequest request, int index)
 		{
-			if (API.Config.UseCache && TryHitCache(request, index, true, out ApiResponse response))
+			if (Config.UseCache && TryHitCache(request, index, true, out IApiResponse response))
 				return response;
 
 			TryGetETag(request, index, out string eTag);
 			request.SetHeader("If-None-Match", eTag);
 
-			response = await API.ResponseManager.GetResponse(request, index);
+			response = await Managers.ResponseManager.GetResponse(request, index);
 			if (response is ApiError)
 			{
 				ApiError error = response as ApiError;
 				if (error.StatusCode == System.Net.HttpStatusCode.NotModified)
 				{
 					TryHitCache(request, index, false, out response);
-					response.UpdateExpiery(error);
+					response.Expired = error.Expired;
 				}
 			}
-			
+
 			if (response.Expired != default && (Cacheability.Public | Cacheability.Private).HasFlag(response.CacheControl.Cacheability))
 				SaveToCache(request, index, response);
 

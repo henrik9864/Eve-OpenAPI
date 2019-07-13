@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,31 +12,31 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Managers
 {
-	internal class ResponseManager : BaseManager
+	internal class ResponseManager : BaseManager, IResponseManager
 	{
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, API api) : base(client, api)
+		public ResponseManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config) : base(client, api, managerContainer, config)
 		{
 		}
 
-		public async Task<ApiResponse> GetResponse(ApiRequest request, int index)
+		public async Task<IApiResponse> GetResponse(IApiRequest request, int index)
 		{
 			HttpResponseMessage response = await GetHttpResponse(request, index);
-			ApiResponse esiResponse = await GetEsiResponse(response);
+			IApiResponse esiResponse = await GetEsiResponse(response);
 
 			CheckRateLimit(response);
 			return esiResponse;
 		}
 
-		public async Task<ApiResponse<T>> GetResponse<T>(ApiRequest request, int index)
+		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index)
 		{
-			ApiResponse esiResponse = await GetResponse(request, index);
+			IApiResponse esiResponse = await GetResponse(request, index);
 			return esiResponse.ToType<T>();
 		}
 
-		async Task<HttpResponseMessage> GetHttpResponse(ApiRequest request, int index)
+		async Task<HttpResponseMessage> GetHttpResponse(IApiRequest request, int index)
 		{
 			Uri requestUri = new Uri(request.GetRequestUrl(index));
 			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);
@@ -46,7 +47,7 @@ namespace EveOpenApi.Managers
 			// Throttle requests if users send too many errors.
 			if (errorRemain <= 0 && errorReset > DateTime.Now)
 			{
-				if (API.Config.RateLimitThrotle)
+				if (Config.RateLimitThrotle)
 					await Task.Delay(errorReset - DateTime.Now);
 				else
 					throw new Exception("Rate limit reached.");
@@ -55,7 +56,7 @@ namespace EveOpenApi.Managers
 			return await Client.SendAsync(requestMessage);
 		}
 
-		async Task<ApiResponse> GetEsiResponse(HttpResponseMessage response)
+		async Task<IApiResponse> GetEsiResponse(HttpResponseMessage response)
 		{
 			string eTag = TryGetHeaderValue(response.Headers, "etag");
 			string expires = TryGetHeaderValue(response.Content.Headers, "expires");
@@ -68,6 +69,7 @@ namespace EveOpenApi.Managers
 			else
 				parsedExpiery = default;
 
+			// Bad
 			switch (response.StatusCode)
 			{
 				case HttpStatusCode.OK:

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EveOpenApi.Api
 {
-	public class ApiResponse<T> : ApiResponse
+	public class ApiResponse<T> : ApiResponse, IApiResponse<T>
 	{
 		public new T Response { get; }
 
@@ -15,7 +15,7 @@ namespace EveOpenApi.Api
 			Response = JsonConvert.DeserializeObject<T>(base.Response);
 		}
 
-		public override ApiResponse<T> ToType<T>()
+		public override IApiResponse<T> ToType<T>()
 		{
 			throw new Exception("EsiResponse alreaedy casted.");
 		}

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EveOpenApi.Managers.CacheControl
 {
-	internal class CacheControl
+	public class CacheControl
 	{
 		internal Cacheability Cacheability { get; } = Cacheability.Public;
 

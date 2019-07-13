@@ -6,7 +6,7 @@ using System.Text;
 
 namespace EveOpenApi.Api.Configs
 {
-	public class ApiEsiConfig : ApiConfig
+	public class EsiConfig : ApiConfig, IEsiConfig
 	{
 		public string BaseUrl { get; set; } = "https://esi.evetech.net/";
 

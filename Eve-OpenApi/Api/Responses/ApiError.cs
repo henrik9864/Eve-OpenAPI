@@ -28,7 +28,7 @@ namespace EveOpenApi.Api
 			StatusCode = statusCode;
 		}
 
-		public override ApiResponse<T> ToType<T>()
+		public override IApiResponse<T> ToType<T>()
 		{
 			throw new Exception($"ApiError cannot be casted. Error: {Error}");
 		}

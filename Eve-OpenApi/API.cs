@@ -15,7 +15,7 @@ using System.Net;
 
 namespace EveOpenApi
 {
-	public class API
+	public class API : IAPI
 	{
 		internal static HttpClient Client { get; set; }
 
@@ -25,39 +25,19 @@ namespace EveOpenApi
 
 		public string DefaultUser { get; private set; }
 
-		#region Internal
+		internal IApiConfig Config { get; }
 
-		internal RequestManager RequestManager { get; }
+		IFactory<IApiPath> pathFacotry;
+		IFactory<IApiEventPath> eventPathFacotry;
 
-		internal CacheManager CacheManager { get; }
-
-		internal ResponseManager ResponseManager { get; }
-
-		internal EventManager EventManager { get; }
-
-		internal TokenManager TokenManager { get; }
-
-		internal ApiConfig Config { get; }
-
-		#endregion
-
-		public API(ILogin login, IApiConfig config)
-			: this(login, SpecFromUrl(config.SpecURL), (ApiConfig)config)
-		{
-		}
-
-		public API(ILogin login, OpenApiDocument spec, ApiConfig config)
+		internal API(ILogin login, IApiConfig config, IFactory<IApiPath> pathFacotry, IFactory<IApiEventPath> eventPathFacotry)
 		{
 			Login = login;
-			Spec = spec;
+			this.pathFacotry = pathFacotry;
+			this.eventPathFacotry = eventPathFacotry;
+			Spec = SpecFromUrl(config.SpecURL);
 			Config = config;
 			DefaultUser = Config.DefaultUser;
-
-			RequestManager = new RequestManager(Client, this);
-			CacheManager = new CacheManager(Client, this);
-			ResponseManager = new ResponseManager(Client, this);
-			EventManager = new EventManager(Client, this);
-			TokenManager = new TokenManager(Client, this);
 		}
 
 		public void ChangeLogin(ILogin login)
@@ -68,21 +48,37 @@ namespace EveOpenApi
 			Login = login;
 		}
 
-		public ApiPath Path(string path)
+		public IApiPath Path(string path)
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
-				return new ApiPath(this, path, DefaultUser, pathItem);
+				return pathFacotry.Create(path, DefaultUser, pathItem);//new ApiPath(this, path, DefaultUser, pathItem);
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
 		}
 
-		public ApiEventPath PathEvent(string path)
+		public IApiEventPath PathEvent(string path)
 		{
 			if (Spec.Paths.TryGetValue(path, out OpenApiPathItem pathItem))
-				return new ApiEventPath(this, path, DefaultUser, pathItem);
+				return eventPathFacotry.Create(path, DefaultUser, pathItem);//new ApiEventPath(this, path, DefaultUser, pathItem);
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
 		}
+
+		static OpenApiDocument SpecFromUrl(string specUrl)
+		{
+			string specString;
+			using (WebClient webClient = new WebClient())
+			{
+				specString = webClient.DownloadString(specUrl);
+			}
+
+			return new OpenApiStringReader().Read(specString, out OpenApiDiagnostic diagnostic);
+		}
+
+		#region Static methods
+
+		// Deprecated
+		/*
 
 		/// <summary>
 		/// Create a new EsiNet with specification.
@@ -109,7 +105,7 @@ namespace EveOpenApi
 		/// <param name="client">Optional HttpClient.</param>
 		/// <param name="config">Optional Config.</param>
 		/// <returns></returns>
-		public API CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
+		public static API CreateEsiVersioned(EsiVersion version, Datasource datasource, ILogin login, HttpClient client = default, ApiConfig config = default)
 		{
 			string baseUrl = "https://esi.evetech.net/";
 			string specUrl = $"{baseUrl}_{version}/swagger.json?datasource={datasource}".ToLower();
@@ -153,5 +149,9 @@ namespace EveOpenApi
 
 			return new OpenApiStringReader().Read(specString, out OpenApiDiagnostic diagnostic);
 		}
+
+		*/
+
+		#endregion
 	}
 }

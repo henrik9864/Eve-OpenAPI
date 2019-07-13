@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Enums;
+using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using System;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace EveOpenApi.Api
 {
-    public class ApiEventMethod
+	public class ApiEventMethod : IApiEventMethod
 	{
 		public string Path { get; }
 
@@ -18,16 +19,17 @@ namespace EveOpenApi.Api
 		public List<string> Users { get; }
 
 		OpenApiPathItem pathItem;
-		API parent;
 
-		public ApiEventMethod(string path, OperationType operation, Dictionary<string, List<object>> parameters, List<string> users, OpenApiPathItem pathItem, API parent)
+		IManagerContainer managers;
+
+		internal ApiEventMethod(OpenApiPathItem pathItem, IManagerContainer managerContainer, string path, OperationType operation, Dictionary<string, List<object>> parameters, List<string> users)
 		{
 			Path = path;
 			Operation = operation;
 			Parameters = parameters;
 			Users = users;
 			this.pathItem = pathItem;
-			this.parent = parent;
+			this.managers = managerContainer;
 		}
 
 		/// <summary>
@@ -37,19 +39,19 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				ApiRequest request = GetRequest(EventType.Change);
+				IEventManager eventManager = managers.EventManager;
+				IApiRequest request = GetRequest(EventType.Change);
+
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
-				{
-					parent.EventManager.Events[(request.GetHashCode(i), EventType.Change)] = parent.EventManager.Events[(request.GetHashCode(i), EventType.Change)] + value;
-				}
+					eventManager.Events[(request.GetHashCode(i), EventType.Change)] = eventManager.Events[(request.GetHashCode(i), EventType.Change)] + value;
 			}
 			remove
 			{
-				ApiRequest request = GetRequest(EventType.Change);
+				IEventManager eventManager = managers.EventManager;
+				IApiRequest request = GetRequest(EventType.Change);
+
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
-				{
-					parent.EventManager.Events[(request.GetHashCode(i), EventType.Change)] = parent.EventManager.Events[(request.GetHashCode(i), EventType.Change)] - value;
-				}
+					eventManager.Events[(request.GetHashCode(i), EventType.Change)] = eventManager.Events[(request.GetHashCode(i), EventType.Change)] - value;
 			}
 		}
 
@@ -60,25 +62,25 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				ApiRequest request = GetRequest(EventType.Update);
+				IEventManager eventManager = managers.EventManager;
+				IApiRequest request = GetRequest(EventType.Update);
+
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
-				{
-					parent.EventManager.Events[(request.GetHashCode(i), EventType.Update)] = parent.EventManager.Events[(request.GetHashCode(i), EventType.Update)] + value;
-				}
+					eventManager.Events[(request.GetHashCode(i), EventType.Update)] = eventManager.Events[(request.GetHashCode(i), EventType.Update)] + value;
 			}
 			remove
 			{
-				ApiRequest request = GetRequest(EventType.Update);
+				IEventManager eventManager = managers.EventManager;
+				IApiRequest request = GetRequest(EventType.Update);
+
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
-				{
-					parent.EventManager.Events[(request.GetHashCode(i), EventType.Update)] = parent.EventManager.Events[(request.GetHashCode(i), EventType.Update)] - value;
-				}
+					eventManager.Events[(request.GetHashCode(i), EventType.Update)] = eventManager.Events[(request.GetHashCode(i), EventType.Update)] - value;
 			}
 		}
 
-		ApiRequest GetRequest(EventType type)
+		IApiRequest GetRequest(EventType type)
 		{
-			return parent.EventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
+			return managers.EventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
 		}
 
 		OpenApiOperation GetOperation(OperationType type)

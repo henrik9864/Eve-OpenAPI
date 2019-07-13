@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Managers
 {
-	internal class RequestManager : BaseManager
+	internal class RequestManager : BaseManager, IRequestManager
 	{
-		public RequestManager(HttpClient client, API api) : base(client, api)
+		public RequestManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config) : base(client, api, managerContainer, config)
 		{
 		}
 
@@ -24,10 +25,10 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<ApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public async Task<IList<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await API.CacheManager.GetResponse(request);
+			return await Managers.CacheManager.GetResponse(request);
 		}
 
 		/// <summary>
@@ -40,10 +41,10 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<List<ApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public async Task<IList<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await API.CacheManager.GetResponse<T>(request);
+			return await Managers.CacheManager.GetResponse<T>(request);
 		}
 
 		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
@@ -72,7 +73,7 @@ namespace EveOpenApi.Managers
 			foreach (var item in operation.Parameters)
 			{
 				bool found = parameters.TryGetValue(item.Name, out List<object> value);
-				
+
 				if (found)
 				{
 					if (maxLength == 1 && value.Count > maxLength)
