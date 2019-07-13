@@ -12,8 +12,11 @@ namespace EveOpenApi.Managers
 {
 	internal class RequestManager : BaseManager, IRequestManager
 	{
-		public RequestManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config) : base(client, api, managerContainer, config)
+		ICacheManager cacheManager;
+
+		public RequestManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager) : base(client, login, config)
 		{
+			this.cacheManager = cacheManager;
 		}
 
 		/// <summary>
@@ -28,7 +31,7 @@ namespace EveOpenApi.Managers
 		public async Task<IList<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await Managers.CacheManager.GetResponse(request);
+			return await cacheManager.GetResponse(request);
 		}
 
 		/// <summary>
@@ -44,13 +47,13 @@ namespace EveOpenApi.Managers
 		public async Task<IList<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await Managers.CacheManager.GetResponse<T>(request);
+			return await cacheManager.GetResponse<T>(request);
 		}
 
 		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			var parsed = ParseParameters(operation, parameters, users);
-			string baseUrl = $"{API.Spec.Servers[0].Url}";
+			string baseUrl = Config.SpecURL;//$"{API.Spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 
@@ -97,7 +100,7 @@ namespace EveOpenApi.Managers
 							break;
 					}
 				}
-				else if (item.Required && API.Login?.Setup.TokenLocation != "query" && API.Login?.Setup.TokenName == item.Name)
+				else if (item.Required && Login?.Setup.TokenLocation != "query" && Login?.Setup.TokenName == item.Name)
 					throw new Exception($"Required parameter '{item.Name}' not supplied.");
 			}
 

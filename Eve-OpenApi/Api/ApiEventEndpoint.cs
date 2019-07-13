@@ -19,17 +19,16 @@ namespace EveOpenApi.Api
 		public List<string> Users { get; }
 
 		OpenApiPathItem pathItem;
+		IEventManager eventManager;
 
-		IManagerContainer managers;
-
-		internal ApiEventMethod(OpenApiPathItem pathItem, IManagerContainer managerContainer, string path, OperationType operation, Dictionary<string, List<object>> parameters, List<string> users)
+		internal ApiEventMethod(OpenApiPathItem pathItem, string path, OperationType operation, Dictionary<string, List<object>> parameters, List<string> users, IEventManager eventManager)
 		{
 			Path = path;
 			Operation = operation;
 			Parameters = parameters;
 			Users = users;
 			this.pathItem = pathItem;
-			this.managers = managerContainer;
+			this.eventManager = eventManager;
 		}
 
 		/// <summary>
@@ -39,7 +38,6 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				IEventManager eventManager = managers.EventManager;
 				IApiRequest request = GetRequest(EventType.Change);
 
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -47,7 +45,6 @@ namespace EveOpenApi.Api
 			}
 			remove
 			{
-				IEventManager eventManager = managers.EventManager;
 				IApiRequest request = GetRequest(EventType.Change);
 
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -62,7 +59,6 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				IEventManager eventManager = managers.EventManager;
 				IApiRequest request = GetRequest(EventType.Update);
 
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -70,7 +66,6 @@ namespace EveOpenApi.Api
 			}
 			remove
 			{
-				IEventManager eventManager = managers.EventManager;
 				IApiRequest request = GetRequest(EventType.Update);
 
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -80,7 +75,7 @@ namespace EveOpenApi.Api
 
 		IApiRequest GetRequest(EventType type)
 		{
-			return managers.EventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
+			return eventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
 		}
 
 		OpenApiOperation GetOperation(OperationType type)

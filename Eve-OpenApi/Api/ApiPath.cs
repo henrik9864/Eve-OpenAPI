@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using EveOpenApi.Interfaces;
+using EveOpenApi.Managers;
 
 namespace EveOpenApi.Api
 {
@@ -16,13 +17,13 @@ namespace EveOpenApi.Api
 
 		OpenApiPathItem pathItem;
 
-		IManagerContainer managers;
+		IRequestManager requestManager;
 
-		internal ApiPath(IManagerContainer managers, string path, string defaultUser, OpenApiPathItem pathItem)
+		internal ApiPath(string path, string defaultUser, OpenApiPathItem pathItem, IRequestManager requestManager)
 		{
 			Path = path;
 			this.pathItem = pathItem;
-			this.managers = managers;
+			this.requestManager = requestManager;
 			DefaultUsers = new List<string>() { defaultUser };
 		}
 
@@ -298,13 +299,13 @@ namespace EveOpenApi.Api
 		async Task<IList<IApiResponse>> RunBatch(OperationType type, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
-			return await managers.RequestManager.RequestBatch(Path, type, parameters, DefaultUsers, operation);
+			return await requestManager.RequestBatch(Path, type, parameters, DefaultUsers, operation);
 		}
 
 		async Task<IList<IApiResponse<T>>> RunBatch<T>(OperationType type, Dictionary<string, List<object>> parameters)
 		{
 			OpenApiOperation operation = GetOperation(type);
-			return await managers.RequestManager.RequestBatch<T>(Path, type, parameters, DefaultUsers, operation);
+			return await requestManager.RequestBatch<T>(Path, type, parameters, DefaultUsers, operation);
 		}
 
 		OpenApiOperation GetOperation(OperationType type)

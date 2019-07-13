@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -8,11 +9,11 @@ namespace EveOpenApi.Api.Factories
 {
 	class ApiPathFactory : IFactory<IApiPath>
 	{
-		IManagerContainer managers;
+		IRequestManager requestManager;
 
-		public ApiPathFactory(IManagerContainer managers)
+		public ApiPathFactory(IRequestManager requestManager)
 		{
-			this.managers = managers;
+			this.requestManager = requestManager;
 		}
 
 		public IApiPath Create(params object[] context)
@@ -21,7 +22,7 @@ namespace EveOpenApi.Api.Factories
 			string defaultUser = (string)context[1];
 			OpenApiPathItem pathItem = (OpenApiPathItem)context[2];
 
-			return new ApiPath(managers, path, defaultUser, pathItem);
+			return new ApiPath(path, defaultUser, pathItem, requestManager);
 		}
 	}
 }

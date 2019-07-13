@@ -1,8 +1,12 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Api.Factories;
 using EveOpenApi.Interfaces;
+using EveOpenApi.Managers;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Reflection.Metadata;
 using System.Text;
@@ -15,17 +19,9 @@ namespace EveOpenApi
 
 		public ILogin Login { get; private set; }
 
-		IManagerContainer managers;
-
-		IFactory<IApiPath> pathFacotry;
-		IFactory<IApiEventMethod> eventMethodFactory;
-		IFactory<IApiEventPath> eventPathFactory;
-
 		public ApiBuilder()
 		{
-			pathFacotry = new ApiPathFactory(managers);
-			eventMethodFactory = new ApiEventMethodFactory(managers);
-			eventPathFactory = new ApiEventPathFactory(managers, eventMethodFactory);
+			Config = new ApiConfig();
 		}
 
 		public ApiBuilder(IApiConfig config) : this()
@@ -63,6 +59,22 @@ namespace EveOpenApi
 
 		IAPI Create(ILogin login, IApiConfig config)
 		{
+			if (config is null)
+				throw new Exception("Configuration cannot be null");
+
+			HttpClient client = new HttpClient();
+			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+			ITokenManager tokenManager = new TokenManager(client, config, login);
+			IResponseManager responseManager = new ResponseManager(client,config, login);
+			ICacheManager cacheManager = new CacheManager(client, config, login, memoryCache, tokenManager, responseManager);
+			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager);
+			IEventManager eventManager = new EventManager(client, config, login, cacheManager, requestManager);
+
+			IFactory<IApiPath> pathFacotry = new ApiPathFactory(requestManager);
+			IFactory<IApiEventMethod> eventMethodFactory = new ApiEventMethodFactory(eventManager);
+			IFactory<IApiEventPath> eventPathFactory = new ApiEventPathFactory(eventMethodFactory);
+
 			return new API(login, config, pathFacotry, eventPathFactory);
 		}
 	}

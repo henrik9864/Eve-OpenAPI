@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -8,11 +9,11 @@ namespace EveOpenApi.Api.Factories
 {
 	class ApiEventMethodFactory : IFactory<IApiEventMethod>
 	{
-		IManagerContainer managers;
+		IEventManager eventManager;
 
-		public ApiEventMethodFactory(IManagerContainer managers)
+		public ApiEventMethodFactory(IEventManager eventManager)
 		{
-			this.managers = managers;
+			this.eventManager = eventManager;
 		}
 
 		public IApiEventMethod Create(params object[] context)
@@ -23,7 +24,7 @@ namespace EveOpenApi.Api.Factories
 			Dictionary<string, List<object>> parameters = (Dictionary<string, List<object>>)context[3];
 			List<string> users = (List<string>)context[4];
 
-			return new ApiEventMethod(pathItem, managers, path, operation, parameters, users);
+			return new ApiEventMethod(pathItem, path, operation, parameters, users, eventManager);
 		}
 	}
 }

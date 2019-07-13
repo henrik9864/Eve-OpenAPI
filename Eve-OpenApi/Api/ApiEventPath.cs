@@ -16,14 +16,12 @@ namespace EveOpenApi.Api
 
 		OpenApiPathItem pathItem;
 
-		IManagerContainer managers;
 		IFactory<IApiEventMethod> eventMethodFactory;
 
-		internal ApiEventPath(IManagerContainer managers, IFactory<IApiEventMethod> eventMethodFactory, string path, string deafultUser, OpenApiPathItem pathItem)
+		internal ApiEventPath(IFactory<IApiEventMethod> eventMethodFactory, string path, string deafultUser, OpenApiPathItem pathItem)
 		{
 			Path = path;
 			this.pathItem = pathItem;
-			this.managers = managers;
 			this.eventMethodFactory = eventMethodFactory;
 			DefaultUsers = new List<string>() { deafultUser };
 		}

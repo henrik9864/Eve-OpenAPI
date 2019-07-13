@@ -10,7 +10,7 @@ namespace EveOpenApi.Managers
 {
 	internal class TokenManager : BaseManager, ITokenManager
 	{
-		public TokenManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config) : base(client, api, managerContainer, config)
+		public TokenManager(HttpClient client, IApiConfig config, ILogin login) : base(client, login, config)
 		{
 		}
 
@@ -22,10 +22,10 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		public async Task AddAuthTokens(IApiRequest request)
 		{
-			if (API.Login is null && !string.IsNullOrEmpty(request.Scope))
+			if (Login is null && !string.IsNullOrEmpty(request.Scope))
 				throw new Exception("No login provided");
 
-			if (API.Login != null || Config.AlwaysIncludeAuthHeader)
+			if (Login != null || Config.AlwaysIncludeAuthHeader)
 			{
 				for (int i = 0; i < request.Parameters.MaxLength; i++)
 					await AddAuthToken(request, i);
@@ -43,10 +43,10 @@ namespace EveOpenApi.Managers
 			if (string.IsNullOrEmpty(request.Scope))
 				return;
 
-			if (API.Login is null && Config.AlwaysIncludeAuthHeader)
+			if (Login is null && Config.AlwaysIncludeAuthHeader)
 				AddTokenLocation(request, "");
 
-			if (!API.Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
+			if (!Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
 				throw new Exception($"No token with scope '{request.Scope}'");
 
 			AddTokenLocation(request, await token.GetToken());
@@ -59,16 +59,16 @@ namespace EveOpenApi.Managers
 		/// <param name="token"></param>
 		void AddTokenLocation(IApiRequest request, string token)
 		{
-			switch (API.Login.Setup.TokenLocation)
+			switch (Login.Setup.TokenLocation)
 			{
 				case "header":
-					if (request.Parameters.Headers.Exists(a => a.Key == API.Login.Setup.TokenName))
+					if (request.Parameters.Headers.Exists(a => a.Key == Login.Setup.TokenName))
 						return;
 
-					request.SetHeader(API.Login.Setup.TokenName, token);
+					request.SetHeader(Login.Setup.TokenName, token);
 					break;
 				case "query":
-					request.AddToQuery(API.Login.Setup.TokenName, token);
+					request.AddToQuery(Login.Setup.TokenName, token);
 					break;
 				default:
 					throw new Exception("Unknown access token location");

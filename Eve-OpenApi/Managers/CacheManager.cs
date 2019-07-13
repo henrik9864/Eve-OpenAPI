@@ -2,6 +2,7 @@
 using EveOpenApi.Enums;
 using EveOpenApi.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using SharpYaml.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,10 +19,15 @@ namespace EveOpenApi.Managers
 		IMemoryCache cache;
 		RequestQueueAsync<IApiRequest, IList<IApiResponse>> requestQueue;
 
-		public CacheManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config, IMemoryCache memoryCache) : base(client, api, managerContainer, config)
+		ITokenManager tokenManager;
+		IResponseManager responseManager;
+
+		public CacheManager(HttpClient client, IApiConfig config, ILogin login, IMemoryCache memoryCache, ITokenManager tokenManager, IResponseManager responseManager) : base(client, login, config)
 		{
 			requestQueue = new RequestQueueAsync<IApiRequest, IList<IApiResponse>>(ProcessResponse);
 			cache = memoryCache;
+			this.tokenManager = tokenManager;
+			this.responseManager = responseManager;
 		}
 
 		/// <summary>
@@ -47,13 +53,13 @@ namespace EveOpenApi.Managers
 
 		public async Task<IApiResponse> GetResponse(IApiRequest request, int index)
 		{
-			await Managers.TokenManager.AddAuthTokens(request);
+			await tokenManager.AddAuthTokens(request);
 			return await ProcessResponse(request, index);
 		}
 
 		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index)
 		{
-			await Managers.TokenManager.AddAuthTokens(request);
+			await tokenManager.AddAuthTokens(request);
 			IApiResponse response = await ProcessResponse(request, index);
 			return response.ToType<T>();
 		}
@@ -73,7 +79,7 @@ namespace EveOpenApi.Managers
 
 		async Task<int> AddToRequestQueue(IApiRequest request)
 		{
-			await Managers.TokenManager.AddAuthTokens(request);
+			await tokenManager.AddAuthTokens(request);
 
 			if (string.IsNullOrEmpty(Config.UserAgent))
 				throw new Exception("User-Agent must be set.");
@@ -145,7 +151,7 @@ namespace EveOpenApi.Managers
 			TryGetETag(request, index, out string eTag);
 			request.SetHeader("If-None-Match", eTag);
 
-			response = await Managers.ResponseManager.GetResponse(request, index);
+			response = await responseManager.GetResponse(request, index);
 			if (response is ApiError)
 			{
 				ApiError error = response as ApiError;

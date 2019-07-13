@@ -24,12 +24,18 @@ namespace EveOpenApi.Managers
 
 		bool backroundRunning = false;
 
-		public EventManager(HttpClient client, IAPI api, IManagerContainer managerContainer, IApiConfig config, IMemoryCache memoryCache) : base(client, api, managerContainer, config)
+		ICacheManager cacheManager;
+		IRequestManager requestManager;
+
+		public EventManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager, IRequestManager requestManager) : base(client, login, config)
 		{
 			Events = new Dictionary<(int, EventType), ApiUpdate>();
 
 			requests = new SortedList<DateTime, IApiRequest>();
 			trigger = new SemaphoreSlim(0, 1);
+
+			this.cacheManager = cacheManager;
+			this.requestManager = requestManager;
 		}
 
 		/// <summary>
@@ -46,7 +52,7 @@ namespace EveOpenApi.Managers
 			if (!Config.EnableEventQueue)
 				throw new Exception("Events has been disabled. Enable them via the 'EnableEventQueue' property in the config.");
 
-			IApiRequest request = Managers.RequestManager.GetRequest(path, type, parameters, users, operation);
+			IApiRequest request = requestManager.GetRequest(path, type, parameters, users, operation);
 			requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
 
 			for (int i = 0; i < request.Parameters.MaxLength; i++)
@@ -134,8 +140,8 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		async Task<DateTime> ProcessRequest(IApiRequest request, int index)
 		{
-			Managers.CacheManager.TryHitCache(request, index, false, out IApiResponse old);
-			IApiResponse now = await Managers.CacheManager.GetResponse(request, index);
+			cacheManager.TryHitCache(request, index, false, out IApiResponse old);
+			IApiResponse now = await cacheManager.GetResponse(request, index);
 
 			if (now is ApiError)
 				throw new Exception(now.Response);
