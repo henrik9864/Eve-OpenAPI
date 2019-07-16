@@ -3,14 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EveOpenApi.Interfaces
 {
 	/// <summary>
 	/// Interface for obtaining access tokens for swagger API's
 	/// </summary>
-    public interface ILogin
+	public interface ILogin
 	{
 		ILoginSetup LoginSetup { get; }
 

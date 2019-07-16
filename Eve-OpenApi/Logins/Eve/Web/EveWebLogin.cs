@@ -14,7 +14,7 @@ namespace EveOpenApi
 	/// <summary>
 	/// ESI authentication for web applications.
 	/// </summary>
-    public class EveWebLogin : ILogin
+    public class EveWebLogin : IWebLogin
 	{
 		private static HttpClient Client { get; set; }
 

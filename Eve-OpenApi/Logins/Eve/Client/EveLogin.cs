@@ -17,7 +17,7 @@ namespace EveOpenApi
 	/// ESI authentication for client programs.
 	/// TODO: Add AddResponse to DI
 	/// </summary>
-	public class EveLogin : ILogin
+	public class EveLogin : IClientLogin
 	{
 		private static HttpClient Client { get; set; }
 
