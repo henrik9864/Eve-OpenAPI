@@ -41,7 +41,7 @@ namespace EveOpenApi
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
-		public (string authURl, string state) GetAuthUrl(IScope scope)
+		public (string authUrl, string state) GetAuthUrl(IScope scope)
 		{
 			return EveAuthentication.GetAuthUrl(scope, LoginConfig.ClientID, LoginConfig.Callback, Client);
 		}
