@@ -10,9 +10,11 @@ namespace EveOpenApi.Seat
 	{
 		public string AccessToken { get; }
 
+		public string Name { get; }
+
 		public IRemoveOnlyScope Scope { get; }
 
-		public DateTime Expiery { get; }
+		public DateTime Expiers { get; }
 
 		public async Task<string> GetToken()
 		{
@@ -25,11 +27,12 @@ namespace EveOpenApi.Seat
 			await Task.CompletedTask;
 		}
 
-		public SeatToken(string token)
+		public SeatToken(string token, string name)
 		{
 			AccessToken = token;
+			Name = name;
 			Scope = (Scope)"";
-			Expiery = DateTime.MaxValue;
+			Expiers = DateTime.MaxValue;
 		}
 	}
 }

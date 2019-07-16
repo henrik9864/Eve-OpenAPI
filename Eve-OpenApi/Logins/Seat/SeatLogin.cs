@@ -2,6 +2,7 @@
 using EveOpenApi.Seat;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,7 +10,9 @@ namespace EveOpenApi
 {
 	public class SeatLogin : ILogin
 	{
-		public IInterfaceSetup Setup { get; }
+		public ILoginSetup LoginSetup { get; }
+
+		public ISeatLoginConfig LoginConfig { get; }
 
 		public IToken this[string user, string scope]
 		{
@@ -20,23 +23,16 @@ namespace EveOpenApi
 		}
 
 		Dictionary<string, List<IToken>> userTokens;
+		ITokenFactory<SeatToken> tokenFactory;
 
-		public SeatLogin(string user, string token)
+		internal SeatLogin(ISeatLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactory<SeatToken> tokenFactory)
 		{
-			Setup = new SeatInterfaceSetup();
+			LoginSetup = loginSetup;
+			LoginConfig = loginConfig;
+			this.tokenFactory = tokenFactory;
+
 			userTokens = new Dictionary<string, List<IToken>>();
-			AddToken(user, token);
-		}
-
-		public void AddToken(string user, string token)
-		{
-			if (!userTokens.TryGetValue(user, out List<IToken> tokens))
-			{
-				tokens = new List<IToken>();
-				userTokens.Add(user, tokens);
-			}
-
-			tokens.Add(new SeatToken(token));
+			AddToken(LoginConfig.User, loginConfig.Token);
 		}
 
 		public IToken GetToken(string user, IScope scope)
@@ -53,6 +49,28 @@ namespace EveOpenApi
 		{
 			token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 			return token != null;
+		}
+
+		public IList<string> GetUsers()
+		{
+			return userTokens.ToList()
+				.ConvertAll(x => x.Key);
+		}
+
+		public IList<IToken> GetTokens(string user)
+		{
+			return userTokens[user];
+		}
+
+		void AddToken(string user, string token)
+		{
+			if (!userTokens.TryGetValue(user, out List<IToken> tokens))
+			{
+				tokens = new List<IToken>();
+				userTokens.Add(user, tokens);
+			}
+
+			tokens.Add(tokenFactory.CreateToken(token, user));
 		}
 	}
 }

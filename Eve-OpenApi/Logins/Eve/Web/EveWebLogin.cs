@@ -1,5 +1,7 @@
 ﻿using EveOpenApi.Eve;
 using EveOpenApi.Interfaces;
+using EveOpenApi.Seat;
+using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +18,9 @@ namespace EveOpenApi
 	{
 		private static HttpClient Client { get; set; }
 
-		public IInterfaceSetup Setup { get; }
+		public ILoginSetup LoginSetup { get; }
+
+		public IEveWebLoginConfig LoginConfig { get; }
 
 		public IToken this[string user, string scope]
 		{
@@ -26,36 +30,25 @@ namespace EveOpenApi
 			}
 		}
 
-		public string ClientID { get; }
-
-		public string ClientSecret { get; }
-
-		public string Callback { get; }
-
 		Dictionary<string, List<IToken>> userTokens;
+		ITokenFactoryAsync<EveToken> tokenFactory;
 
-		public EveWebLogin(string clientID, string clientSecret, string callback, HttpClient client = default)
+		internal EveWebLogin(IEveWebLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, HttpClient client)
 		{
-			if (Client == default && client != default)
-				Client = client;
-			else if (Client == default)
-				Client = new HttpClient();
-
-			ClientID = clientID;
-			Callback = callback;
-			ClientSecret = clientSecret;
-			Setup = new EveInterfaceSetup();
+			LoginSetup = loginSetup;
+			LoginConfig = loginConfig;
+			this.tokenFactory = tokenFactory;
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
 		public (string authURl, string state) GetAuthUrl(IScope scope)
 		{
-			return EveAuthentication.GetAuthUrl(scope, ClientID, Callback, Client);
+			return EveAuthentication.GetAuthUrl(scope, LoginConfig.ClientID, LoginConfig.Callback, Client);
 		}
 
 		public async Task<IToken> AddToken(IScope scope, string code)
 		{
-			EveToken token = await EveAuthentication.GetWebToken(scope, code, ClientID, ClientSecret);
+			IToken token = await tokenFactory.CreateTokenAsync(scope, code, LoginConfig.ClientID, LoginConfig.ClientSecret);
 			AddToken(token);
 
 			return token;
@@ -79,13 +72,18 @@ namespace EveOpenApi
 			return token;
 		}
 
-		public List<string> GetUsers()
+		IList<string> ILogin.GetUsers()
 		{
-			var dicList = userTokens.ToList();
-			return dicList.ConvertAll(a => a.Key);
+			return userTokens.ToList()
+				.ConvertAll(a => a.Key);
 		}
 
-		void AddToken(EveToken token)
+		public IList<IToken> GetTokens(string user)
+		{
+			return userTokens[user];
+		}
+
+		void AddToken(IToken token)
 		{
 			if (userTokens.TryGetValue(token.Name, out List<IToken> list))
 				list.Add(token);

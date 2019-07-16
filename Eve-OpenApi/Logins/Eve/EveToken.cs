@@ -40,7 +40,7 @@ namespace EveOpenApi
 
 		public int UserID { get; }
 
-		public DateTime Expiery { get; private set; }
+		public DateTime Expiers { get; private set; }
 
 		public IRemoveOnlyScope Scope { get; private set; }
 
@@ -55,7 +55,7 @@ namespace EveOpenApi
 			Credential = credential;
 
 			string[] subjectArray = Token.Subject.Split(':');
-			Expiery = DateTime.Now + new TimeSpan(0, 0, int.Parse(credential.ExpiresIn));
+			Expiers = DateTime.Now + new TimeSpan(0, 0, int.Parse(credential.ExpiresIn));
 			UserID = int.Parse(subjectArray[2]);
 		}
 
@@ -72,7 +72,7 @@ namespace EveOpenApi
 				Scope = subset;
 
 			Credential = await EveAuthentication.RefreshToken(subset, Credential.RefreshToken, Token.ClientID);
-			Expiery = DateTime.Now + new TimeSpan(0, 0, int.Parse(Credential.ExpiresIn));
+			Expiers = DateTime.Now + new TimeSpan(0, 0, int.Parse(Credential.ExpiresIn));
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task<string> GetToken()
 		{
-			if (DateTime.Now > Expiery)
+			if (DateTime.Now > Expiers)
 				await RefreshToken();
 
 			return AccessToken;

@@ -2,10 +2,12 @@
 using EveOpenApi.Interfaces;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,12 +15,15 @@ namespace EveOpenApi
 {
 	/// <summary>
 	/// ESI authentication for client programs.
+	/// TODO: Add AddResponse to DI
 	/// </summary>
 	public class EveLogin : ILogin
 	{
 		private static HttpClient Client { get; set; }
 
-		public IInterfaceSetup Setup { get; }
+		public ILoginSetup LoginSetup { get; }
+
+		public IEveLoginConfig LoginConfig { get; }
 
 		public IToken this[string user, string scope]
 		{
@@ -28,22 +33,16 @@ namespace EveOpenApi
 			}
 		}
 
-		public string ClientID { get; }
-
-		public string Callback { get; }
-
 		Dictionary<string, List<IToken>> userTokens;
+		ITokenFactoryAsync<EveToken> tokenFactory;
 
-		public EveLogin(string clientID, string callback, HttpClient client  = default)
+		internal EveLogin(IEveLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, HttpClient client)
 		{
-			if (Client == default && client != default)
-				Client = client;
-			else if (Client == default)
-				Client = new HttpClient();
+			Client = client;
+			LoginSetup = loginSetup;
+			LoginConfig = loginConfig;
+			this.tokenFactory = tokenFactory;
 
-			ClientID = clientID;
-			Callback = callback;
-			Setup = new EveInterfaceSetup();
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
@@ -54,7 +53,8 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task<IToken> AddToken(IScope scope)
 		{
-			EveToken token = await EveAuthentication.CreateToken(scope, ClientID, Callback, Client);
+			//IToken token = await EveAuthentication.CreateToken(scope, LoginConfig.ClientID, LoginConfig.Callback, Client);
+			IToken token = await tokenFactory.CreateTokenAsync(scope, LoginConfig.ClientID, LoginConfig.Callback, Client);
 			AddToken(token);
 
 			return token;
@@ -67,7 +67,7 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public async Task<string> GetAuthURL(IScope scope)
 		{
-			var auth = EveAuthentication.Authenticate(scope, ClientID, Callback);
+			var auth = EveAuthentication.Authenticate(scope, LoginConfig.ClientID, LoginConfig.Callback);
 			AddResponse(scope, auth.state, auth.verifier);
 
 			await Task.CompletedTask;
@@ -103,45 +103,20 @@ namespace EveOpenApi
 		/// Get all users with token.
 		/// </summary>
 		/// <returns></returns>
-		public List<string> GetUsers()
+		public IList<string> GetUsers()
 		{
 			var dicList = userTokens.ToList();
 			return dicList.ConvertAll(a => a.Key);
 		}
 
 		/// <summary>
-		/// Save all tokens to file.
+		/// Get all scopes for a user.
 		/// </summary>
-		/// <param name="filePath"></param>
+		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task SaveToFile(string filePath)
+		public IList<IToken> GetTokens(string user)
 		{
-			using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
-			{
-				string jsonString = ToJson();
-				byte[] json = Encoding.UTF8.GetBytes(jsonString);
-
-				await fileStream.WriteAsync(json);
-			}
-		}
-
-		/// <summary>
-		/// Convert EveLogin to Json that can be loaded.
-		/// </summary>
-		/// <returns></returns>
-		public string ToJson()
-		{
-			Dictionary<string, List<string>> eveLoginSave = new Dictionary<string, List<string>>();
-			foreach (var user in userTokens)
-			{
-				List<string> tokenSaves = new List<string>();
-				foreach (var token in user.Value)
-					tokenSaves.Add(((EveToken)token).ToJson());
-
-				eveLoginSave.Add(user.Key, tokenSaves);
-			}
-
-			return JsonConvert.SerializeObject((eveLoginSave, ClientID, Callback));
+			return userTokens[user];
 		}
 
 		/// <summary>
@@ -152,7 +127,7 @@ namespace EveOpenApi
 		/// <param name="verfier"></param>
 		async void AddResponse(IScope scope, string state, string verfier)
 		{
-			EveToken token = await EveAuthentication.ValidateResponse(scope, Callback, state, verfier, ClientID);
+			IToken token = await EveAuthentication.ValidateResponse(scope, LoginConfig.Callback, state, verfier, LoginConfig.ClientID);
 			AddToken(token);
 		}
 
@@ -160,7 +135,7 @@ namespace EveOpenApi
 		/// Add token to dictionary
 		/// </summary>
 		/// <param name="token"></param>
-		void AddToken(EveToken token)
+		void AddToken(IToken token)
 		{
 			if (userTokens.TryGetValue(token.Name, out List<IToken> list))
 				list.Add(token);
@@ -172,6 +147,10 @@ namespace EveOpenApi
 				userTokens.Add(token.Name, list);
 			}
 		}
+
+		#region Static methods
+
+		/*
 
 		/// <summary>
 		/// Create a new EveLogin and add a token with scope.
@@ -217,5 +196,9 @@ namespace EveOpenApi
 
 			return login;
 		}
+
+		*/
+
+		#endregion
 	}
 }

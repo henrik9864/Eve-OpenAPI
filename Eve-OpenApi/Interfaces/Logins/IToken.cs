@@ -9,9 +9,14 @@ namespace EveOpenApi.Interfaces
 	{
 		string AccessToken { get; }
 
+		/// <summary>
+		/// Name for the character or person this token is connected to
+		/// </summary>
+		string Name { get; }
+
 		IRemoveOnlyScope Scope { get; }
 
-		DateTime Expiery { get; }
+		DateTime Expiers { get; }
 
 		Task RefreshToken(IScope subset);
 

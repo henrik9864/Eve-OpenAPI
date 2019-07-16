@@ -59,16 +59,16 @@ namespace EveOpenApi.Managers
 		/// <param name="token"></param>
 		void AddTokenLocation(IApiRequest request, string token)
 		{
-			switch (Login.Setup.TokenLocation)
+			switch (Login.LoginSetup.TokenLocation)
 			{
 				case "header":
-					if (request.Parameters.Headers.Exists(a => a.Key == Login.Setup.TokenName))
+					if (request.Parameters.Headers.Exists(a => a.Key == Login.LoginSetup.TokenName))
 						return;
 
-					request.SetHeader(Login.Setup.TokenName, token);
+					request.SetHeader(Login.LoginSetup.TokenName, token);
 					break;
 				case "query":
-					request.AddToQuery(Login.Setup.TokenName, token);
+					request.AddToQuery(Login.LoginSetup.TokenName, token);
 					break;
 				default:
 					throw new Exception("Unknown access token location");

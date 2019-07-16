@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EveOpenApi.Seat
 {
-    class SeatInterfaceSetup : IInterfaceSetup
+    class SeatLoginSetup : ILoginSetup
 	{
 		public string TokenLocation { get; } = "header";
 

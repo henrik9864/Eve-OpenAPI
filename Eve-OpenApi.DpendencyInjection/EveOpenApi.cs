@@ -37,7 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
 		{
 			services.AddSingleton<HttpClient>();
 			services.Configure<EveWebConfig>(config.GetSection("EveConfig"));
-			services.AddSingleton<ILogin, EveWebLoginExtension>();
+			//services.AddSingleton<ILogin, EveWebLoginExtension>();
 
 			return services;
 		}
