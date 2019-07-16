@@ -55,7 +55,7 @@ namespace EveOpenApi.Api
 		/// <summary>
 		/// Called whenever the data on an endpoint change.
 		/// </summary>
-		public event ApiUpdate OnUpdate
+		public event ApiUpdate OnExpire
 		{
 			add
 			{
