@@ -65,7 +65,7 @@ namespace EveOpenApi
 		/// </summary>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		public async Task<string> GetAuthURL(IScope scope)
+		public async Task<string> GetAuthUrl(IScope scope)
 		{
 			var auth = EveAuthentication.Authenticate(scope, LoginConfig.ClientID, LoginConfig.Callback);
 			AddResponse(scope, auth.state, auth.verifier);

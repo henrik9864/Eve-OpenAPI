@@ -28,7 +28,6 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.1.2" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
   <ItemGroup>
