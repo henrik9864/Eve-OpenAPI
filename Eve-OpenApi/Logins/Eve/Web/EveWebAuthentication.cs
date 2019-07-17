@@ -63,8 +63,6 @@ namespace EveOpenApi.Eve
 			string authString = $"{clientID}:{clientSecret}";
 			string urlSafe = Convert.ToBase64String(Encoding.ASCII.GetBytes(authString));
 
-			Console.WriteLine(authString);
-			Console.WriteLine(urlSafe);
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, loginUrl);
 			request.Content = new FormUrlEncodedContent(data);
 

@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eve-OpenApi.Test", "Eve-Ope
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eve-OpenApi.Examples", "Eve-OpenApi.Examples\Eve-OpenApi.Examples.csproj", "{7E257605-2857-4D4D-AE3A-D54C6AFC3892}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve-OpenApi.DpendencyInjection", "Eve-OpenApi.DpendencyInjection\Eve-OpenApi.DpendencyInjection.csproj", "{8EEC0B4F-D437-488A-8818-895D1A03314D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eve-OpenApi.DpendencyInjection", "Eve-OpenApi.DpendencyInjection\Eve-OpenApi.DpendencyInjection.csproj", "{8EEC0B4F-D437-488A-8818-895D1A03314D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve-OpenApi.Authentication", "Eve-OpenApi.Authentication\Eve-OpenApi.Authentication.csproj", "{014BF337-5D02-449E-B693-8EFDEF3D4DF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{8EEC0B4F-D437-488A-8818-895D1A03314D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EEC0B4F-D437-488A-8818-895D1A03314D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EEC0B4F-D437-488A-8818-895D1A03314D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{014BF337-5D02-449E-B693-8EFDEF3D4DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{014BF337-5D02-449E-B693-8EFDEF3D4DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{014BF337-5D02-449E-B693-8EFDEF3D4DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{014BF337-5D02-449E-B693-8EFDEF3D4DF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

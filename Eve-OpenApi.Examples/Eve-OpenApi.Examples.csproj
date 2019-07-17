@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Eve-OpenApi.Authentication\Eve-OpenApi.Authentication.csproj" />
     <ProjectReference Include="..\Eve-OpenApi\Eve-OpenApi.csproj" />
   </ItemGroup>
 

@@ -3,6 +3,7 @@ using Jose;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -74,7 +75,7 @@ namespace EveOpenApi.Eve
 		{
 			string htmlResponse = "<html><body style=\"background-color: grey\">You can close this page.</body></html>";
 
-			System.Collections.Specialized.NameValueCollection parameters;
+			NameValueCollection parameters;
 			using (HttpListener listener = new HttpListener())
 			{
 				listener.Prefixes.Add($"{callback}/");
