@@ -27,7 +27,7 @@ namespace EveOpenApi.Managers
 		ICacheManager cacheManager;
 		IRequestManager requestManager;
 
-		public EventManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager, IRequestManager requestManager) : base(client, login, config)
+		public EventManager(IHttpHandler client, IApiConfig config, ILogin login, ICacheManager cacheManager, IRequestManager requestManager) : base(client, login, config)
 		{
 			Events = new Dictionary<(int, EventType), ApiUpdate>();
 

@@ -13,9 +13,15 @@ namespace EveOpenApi
 {
 	public class LoginBuilder
 	{
+		IHttpHandler client;
+
+		public LoginBuilder()
+		{
+			client = new HttpHandler();
+		}
+
 		public IClientLogin BuildEve(string clientID, string callback)
 		{
-			HttpClient client = new HttpClient();
 			IEveLoginConfig config = new EveLoginConfig(clientID, callback);
 			ILoginSetup loginSetup = new EveLoginSetup();
 			ITokenFactoryAsync<EveToken> tokenFactory = new EveTokenFactory(client);
@@ -27,9 +33,9 @@ namespace EveOpenApi
 		{
 			IEveWebLoginConfig config = new EveWebLoginConfig(clientID, clientSecret, callback);
 			ILoginSetup loginSetup = new EveLoginSetup();
-			ITokenFactoryAsync<EveToken> tokenFactory = new EveWebTokenFactory();
+			ITokenFactoryAsync<EveToken> tokenFactory = new EveWebTokenFactory(client);
 
-			return new EveWebLogin(config, loginSetup, tokenFactory, new HttpClient());
+			return new EveWebLogin(config, loginSetup, tokenFactory, client);
 		}
 
 		public ILogin BuildSeat(string user, string token)

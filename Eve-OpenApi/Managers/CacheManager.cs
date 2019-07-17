@@ -22,7 +22,7 @@ namespace EveOpenApi.Managers
 		ITokenManager tokenManager;
 		IResponseManager responseManager;
 
-		public CacheManager(HttpClient client, IApiConfig config, ILogin login, IMemoryCache memoryCache, ITokenManager tokenManager, IResponseManager responseManager) : base(client, login, config)
+		public CacheManager(IHttpHandler client, IApiConfig config, ILogin login, IMemoryCache memoryCache, ITokenManager tokenManager, IResponseManager responseManager) : base(client, login, config)
 		{
 			requestQueue = new RequestQueueAsync<IApiRequest, IList<IApiResponse>>(ProcessResponse);
 			cache = memoryCache;

@@ -10,6 +10,13 @@ namespace EveOpenApi.Logins.Eve.Web
 {
 	internal class EveWebTokenFactory : ITokenFactoryAsync<EveToken>
 	{
+		IHttpHandler client;
+
+		public EveWebTokenFactory(IHttpHandler client)
+		{
+			this.client = client;
+		}
+
 		public async Task<EveToken> CreateTokenAsync(params object[] context)
 		{
 			IScope scope = (IScope)context[0];
@@ -17,7 +24,7 @@ namespace EveOpenApi.Logins.Eve.Web
 			string clientID = (string)context[2];
 			string clientSecret = (string)context[3];
 
-			return await EveAuthentication.GetWebToken(scope, code, clientID, clientSecret);
+			return await EveAuthentication.GetWebToken(scope, code, clientID, clientSecret, client);
 		}
 	}
 }

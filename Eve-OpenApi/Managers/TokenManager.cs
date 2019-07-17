@@ -10,7 +10,7 @@ namespace EveOpenApi.Managers
 {
 	internal class TokenManager : BaseManager, ITokenManager
 	{
-		public TokenManager(HttpClient client, IApiConfig config, ILogin login) : base(client, login, config)
+		public TokenManager(IHttpHandler client, IApiConfig config, ILogin login) : base(client, login, config)
 		{
 		}
 

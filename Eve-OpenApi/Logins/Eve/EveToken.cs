@@ -71,7 +71,8 @@ namespace EveOpenApi
 			else
 				Scope = subset;
 
-			Credential = await EveAuthentication.RefreshToken(subset, Credential.RefreshToken, Token.ClientID);
+			// Fix later
+			Credential = await EveAuthentication.RefreshToken(subset, Credential.RefreshToken, Token.ClientID, new HttpHandler());
 			Expiers = DateTime.Now + new TimeSpan(0, 0, int.Parse(Credential.ExpiresIn));
 		}
 

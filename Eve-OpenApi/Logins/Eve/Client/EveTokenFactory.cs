@@ -10,9 +10,9 @@ namespace EveOpenApi.Logins.Eve.Client
 {
 	public class EveTokenFactory : ITokenFactoryAsync<EveToken>
 	{
-		HttpClient client;
+		IHttpHandler client;
 
-		public EveTokenFactory(HttpClient client)
+		public EveTokenFactory(IHttpHandler client)
 		{
 			this.client = client;
 		}

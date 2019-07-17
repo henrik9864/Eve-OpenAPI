@@ -17,8 +17,6 @@ namespace EveOpenApi
 {
 	public class API : IAPI
 	{
-		internal static HttpClient Client { get; set; }
-
 		public ILogin Login { get; private set; }
 
 		public OpenApiDocument Spec { get; private set; }

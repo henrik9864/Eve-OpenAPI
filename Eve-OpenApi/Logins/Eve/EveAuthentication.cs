@@ -18,8 +18,6 @@ namespace EveOpenApi.Eve
 {
     static partial class EveAuthentication
 	{
-		static HttpClient Client { get; set; }
-
 		#region Authentication
 
 		/// <summary>
@@ -29,7 +27,7 @@ namespace EveOpenApi.Eve
 		/// <param name="refreshToken"></param>
 		/// <param name="clientID"></param>
 		/// <returns></returns>
-		internal static async Task<EveCredentials> RefreshToken(IScope scope, string refreshToken, string clientID)
+		internal static async Task<EveCredentials> RefreshToken(IScope scope, string refreshToken, string clientID, IHttpHandler client)
 		{
 			string refreshUrl = $"https://login.eveonline.com/v2/oauth/token/";
 
@@ -41,7 +39,7 @@ namespace EveOpenApi.Eve
 				new KeyValuePair<string, string>("scope", scope.ScopeString),
 			};
 
-			using (HttpResponseMessage response = await Client.PostAsync(refreshUrl, new FormUrlEncodedContent(data)))
+			using (HttpResponseMessage response = await client.PostAsync(refreshUrl, new FormUrlEncodedContent(data)))
 			{
 				string json = await response.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<EveCredentials>(json);
@@ -53,18 +51,16 @@ namespace EveOpenApi.Eve
 		/// </summary>
 		/// <param name="json"></param>
 		/// <returns></returns>
-		internal static async Task<EveToken> FromJson(string json, HttpClient httpClient = default)
+		internal static async Task<EveToken> FromJson(string json, IHttpHandler client)
 		{
-			if (httpClient != default && Client == null)
-				Client = httpClient;
 			List<string> content = JsonConvert.DeserializeObject<List<string>>(json);
 
 			Scope scope = content[0];
 			string refreshToken = content[1];
 			string clientID = content[2];
 
-			EveCredentials credentials = await RefreshToken(scope, refreshToken, clientID);
-			JwtToken token = await ValidateCredentials(credentials);
+			EveCredentials credentials = await RefreshToken(scope, refreshToken, clientID, client);
+			JwtToken token = await ValidateCredentials(credentials, client);
 
 			return new EveToken(credentials, token, scope);
 		}
@@ -105,10 +101,10 @@ namespace EveOpenApi.Eve
 		/// </summary>
 		/// <param name="credential"></param>
 		/// <returns></returns>
-		static async Task<JwtToken> ValidateCredentials(EveCredentials credential)
+		static async Task<JwtToken> ValidateCredentials(EveCredentials credential, IHttpHandler client)
 		{
 			JwtToken token;
-			using (HttpResponseMessage response = await Client.GetAsync("https://login.eveonline.com/oauth/jwks"))
+			using (HttpResponseMessage response = await client.GetAsync("https://login.eveonline.com/oauth/jwks"))
 			{
 				string json = await response.Content.ReadAsStringAsync();
 				Dictionary<string, JToken> keys = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(json);

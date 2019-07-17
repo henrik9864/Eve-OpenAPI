@@ -15,7 +15,7 @@ namespace EveOpenApi.Managers
 		ICacheManager cacheManager;
 		OpenApiDocument spec;
 
-		public RequestManager(HttpClient client, IApiConfig config, ILogin login, ICacheManager cacheManager, OpenApiDocument spec) : base(client, login, config)
+		public RequestManager(IHttpHandler client, IApiConfig config, ILogin login, ICacheManager cacheManager, OpenApiDocument spec) : base(client, login, config)
 		{
 			this.cacheManager = cacheManager;
 			this.spec = spec;

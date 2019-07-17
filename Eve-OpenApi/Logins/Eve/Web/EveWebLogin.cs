@@ -16,7 +16,7 @@ namespace EveOpenApi
 	/// </summary>
     public class EveWebLogin : IWebLogin
 	{
-		private static HttpClient Client { get; set; }
+		private static IHttpHandler Client { get; set; }
 
 		public ILoginSetup LoginSetup { get; }
 
@@ -33,17 +33,18 @@ namespace EveOpenApi
 		Dictionary<string, List<IToken>> userTokens;
 		ITokenFactoryAsync<EveToken> tokenFactory;
 
-		internal EveWebLogin(IEveWebLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, HttpClient client)
+		internal EveWebLogin(IEveWebLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, IHttpHandler client)
 		{
 			LoginSetup = loginSetup;
 			LoginConfig = loginConfig;
+			Client = client;
 			this.tokenFactory = tokenFactory;
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
 		public (string authUrl, string state) GetAuthUrl(IScope scope)
 		{
-			return EveAuthentication.GetAuthUrl(scope, LoginConfig.ClientID, LoginConfig.Callback, Client);
+			return EveAuthentication.GetAuthUrl(scope, LoginConfig.ClientID, LoginConfig.Callback);
 		}
 
 		public async Task<IToken> AddToken(IScope scope, string code)

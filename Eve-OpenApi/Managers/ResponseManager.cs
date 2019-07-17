@@ -17,7 +17,7 @@ namespace EveOpenApi.Managers
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(HttpClient client, IApiConfig config, ILogin login) : base(client, login, config)
+		public ResponseManager(IHttpHandler client, IApiConfig config, ILogin login) : base(client, login, config)
 		{
 		}
 

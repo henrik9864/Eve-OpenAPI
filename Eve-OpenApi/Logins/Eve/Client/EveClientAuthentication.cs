@@ -18,15 +18,12 @@ namespace EveOpenApi.Eve
 		/// <param name="callback"></param>
 		/// <param name="httpClient"></param>
 		/// <returns></returns>
-		internal static async Task<EveToken> CreateToken(IScope scope, string clientID, string callback, HttpClient httpClient = default)
+		internal static async Task<EveToken> CreateToken(IScope scope, string clientID, string callback, IHttpHandler client)
 		{
-			if (httpClient != default && Client == null)
-				Client = httpClient;
-
 			var auth = Authenticate(scope, clientID, callback);
 			OpenUrl(auth.authUrl);
 
-			return await ValidateResponse(scope, callback, auth.state, auth.verifier, clientID);
+			return await ValidateResponse(scope, callback, auth.state, auth.verifier, clientID, client);
 		}
 
 		/// <summary>
@@ -55,14 +52,14 @@ namespace EveOpenApi.Eve
 		/// <param name="codeVerifier"></param>
 		/// <param name="clientID"></param>
 		/// <returns></returns>
-		internal static async Task<EveToken> ValidateResponse(IScope scope, string callback, string state, string codeVerifier, string clientID)
+		internal static async Task<EveToken> ValidateResponse(IScope scope, string callback, string state, string codeVerifier, string clientID, IHttpHandler client)
 		{
 			var response = await GetAuthResponse(callback);
 			if (state != response.state)
 				throw new Exception("Response state not matching sent state.");
 
-			EveCredentials credential = await RetriveClientCredentials(response.code, codeVerifier, clientID);
-			JwtToken token = await ValidateCredentials(credential);
+			EveCredentials credential = await RetriveClientCredentials(response.code, codeVerifier, clientID, client);
+			JwtToken token = await ValidateCredentials(credential, client);
 
 			return new EveToken(credential, token, scope);
 		}
@@ -94,7 +91,7 @@ namespace EveOpenApi.Eve
 		/// <param name="codeVerifier">Code to verifi its was sent by the proper source.</param>
 		/// <param name="clientID">Id of application</param>
 		/// <returns></returns>
-		static async Task<EveCredentials> RetriveClientCredentials(string code, string codeVerifier, string clientID)
+		static async Task<EveCredentials> RetriveClientCredentials(string code, string codeVerifier, string clientID, IHttpHandler client)
 		{
 			string loginUrl = "https://login.eveonline.com/v2/oauth/token";
 			KeyValuePair<string, string>[] data = new[]
@@ -106,7 +103,7 @@ namespace EveOpenApi.Eve
 			};
 
 			EveCredentials credentials;
-			using (HttpResponseMessage response = await Client.PostAsync(loginUrl, new FormUrlEncodedContent(data)))
+			using (HttpResponseMessage response = await client.PostAsync(loginUrl, new FormUrlEncodedContent(data)))
 			{
 				string json = await response.Content.ReadAsStringAsync();
 				credentials = JsonConvert.DeserializeObject<EveCredentials>(json);

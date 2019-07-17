@@ -19,7 +19,7 @@ namespace EveOpenApi
 	/// </summary>
 	public class EveLogin : IClientLogin
 	{
-		private static HttpClient Client { get; set; }
+		private static IHttpHandler Client { get; set; }
 
 		public ILoginSetup LoginSetup { get; }
 
@@ -36,7 +36,7 @@ namespace EveOpenApi
 		Dictionary<string, List<IToken>> userTokens;
 		ITokenFactoryAsync<EveToken> tokenFactory;
 
-		internal EveLogin(IEveLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, HttpClient client)
+		internal EveLogin(IEveLoginConfig loginConfig, ILoginSetup loginSetup, ITokenFactoryAsync<EveToken> tokenFactory, IHttpHandler client)
 		{
 			Client = client;
 			LoginSetup = loginSetup;
@@ -127,7 +127,7 @@ namespace EveOpenApi
 		/// <param name="verfier"></param>
 		async void AddResponse(IScope scope, string state, string verfier)
 		{
-			IToken token = await EveAuthentication.ValidateResponse(scope, LoginConfig.Callback, state, verfier, LoginConfig.ClientID);
+			IToken token = await EveAuthentication.ValidateResponse(scope, LoginConfig.Callback, state, verfier, LoginConfig.ClientID, Client);
 			AddToken(token);
 		}
 

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,19 +19,16 @@ namespace EveOpenApi.Eve
 		/// <param name="callback"></param>
 		/// <param name="state"></param>
 		/// <returns></returns>
-		internal static (string, string) GetAuthUrl(IScope scope, string clientID, string callback, HttpClient httpClient = default)
+		internal static (string, string) GetAuthUrl(IScope scope, string clientID, string callback)
 		{
-			if (httpClient != default && Client == null)
-				Client = httpClient;
-
 			string state = RandomString(8);
 			return (GetAuthURL(scope, clientID, callback, state), state);
 		}
 
-		internal static async Task<EveToken> GetWebToken(IScope scope, string code, string clientID, string clientSecret)
+		internal static async Task<EveToken> GetWebToken(IScope scope, string code, string clientID, string clientSecret, IHttpHandler client)
 		{
-			EveCredentials credentials = await RetriveWebCredentials(code, clientID, clientSecret);
-			JwtToken jwtToken = await ValidateCredentials(credentials);
+			EveCredentials credentials = await RetriveWebCredentials(code, clientID, clientSecret, client);
+			JwtToken jwtToken = await ValidateCredentials(credentials, client);
 
 			return new EveToken(credentials, jwtToken, scope);
 		}
@@ -53,7 +51,7 @@ namespace EveOpenApi.Eve
 				$"&state={state}";
 		}
 
-		static async Task<EveCredentials> RetriveWebCredentials(string code, string clientID, string clientSecret)
+		static async Task<EveCredentials> RetriveWebCredentials(string code, string clientID, string clientSecret, IHttpHandler client)
 		{
 			string loginUrl = "https://login.eveonline.com/v2/oauth/token";
 			KeyValuePair<string, string>[] data = new[]
@@ -74,7 +72,7 @@ namespace EveOpenApi.Eve
 
 
 			EveCredentials credentials;
-			using (HttpResponseMessage response = await Client.SendAsync(request))
+			using (HttpResponseMessage response = await client.SendAsync(request))
 			{
 				Console.WriteLine(await response.Content.ReadAsStringAsync());
 				string json = await response.Content.ReadAsStringAsync();

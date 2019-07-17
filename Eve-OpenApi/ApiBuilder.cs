@@ -65,8 +65,8 @@ namespace EveOpenApi
 			if (config is null)
 				throw new Exception("Configuration cannot be null");
 
-			HttpClient client = new HttpClient();
-			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+			IHttpHandler client = new HttpHandler();
+			IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
 
 			OpenApiDocument spec = SpecFromUrl(config.SpecURL);
 
