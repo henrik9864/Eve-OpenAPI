@@ -4,6 +4,10 @@ namespace EveOpenApi.Authentication.Managers
 {
 	internal interface ITokenManager
 	{
-		Task<(IToken token, string owner)> GetToken(string scope);
+		(string authUrl, string state) GenerateAuthUrl(IScope scope);
+
+		Task<(IToken token, string owner)> GetToken(IScope scope);
+
+		Task<(IToken token, string owner)> ListenForResponse(IScope scope, string state);
 	}
 }

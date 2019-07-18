@@ -7,16 +7,18 @@ namespace EveOpenApi.Authentication
 	{
 		//ILoginSetup LoginSetup { get; }
 
-		IToken this[string user, string scope] { get; }
+		//IToken this[string user, string scope] { get; }
 
-		bool TryGetToken(string user, string scope, out IToken token);
+		Task<IToken> AddToken(IScope scope);
 
-		Task<IToken> AddToken(string scope);
+		Task<string> GetAuthUrl(IScope scope);
 
-		IToken GetToken(string user, string scope);
+		//bool TryGetToken(string user, IScope scope, out IToken token);
 
-		IList<string> GetUsers();
+		//IToken GetToken(string user, IScope scope);
 
-		IList<IToken> GetTokens(string user);
+		//IList<string> GetUsers();
+
+		//IList<IToken> GetTokens(string user);
 	}
 }

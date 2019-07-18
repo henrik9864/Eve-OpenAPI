@@ -27,12 +27,17 @@ namespace EveOpenApi.Authentication.Managers
 			this.credentials = credentials;
 		}
 
-		public async Task<AuthResponse> GetResponse(string authUrl)
+		public async Task<AuthResponse> GetResponse(string authUrl, int timeout)
 		{
 			OpenUrl(authUrl);
 
+			return await AwaitResponse(timeout);
+		}
+
+		public async Task<AuthResponse> AwaitResponse(int timeout)
+		{
 			var listenerTask = ListenForResponse();
-			await Task.WhenAny(listenerTask, Task.Delay(10000));
+			await Task.WhenAny(listenerTask, Task.Delay(timeout));
 
 			if (listenerTask.IsCompleted)
 				return listenerTask.Result;

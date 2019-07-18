@@ -7,7 +7,5 @@
 		string ClientID { get; set; }
 
 		string ClientSecret { get; set; }
-
-		string AuthType { get; set; }
 	}
 }

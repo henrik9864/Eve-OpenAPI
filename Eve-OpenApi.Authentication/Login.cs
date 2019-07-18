@@ -24,12 +24,27 @@ namespace EveOpenApi.Authentication
 			userTokens = new Dictionary<string, List<IToken>>();
 		}
 
-		public async Task<IToken> AddToken(string scope)
+		public async Task<IToken> AddToken(IScope scope)
 		{
 			var result = await tokenManager.GetToken(scope);
 			AddToken(result.owner, result.token);
 
 			return result.token;
+		}
+
+		public async Task<string> GetAuthUrl(IScope scope)
+		{
+			var auth = tokenManager.GenerateAuthUrl(scope);
+
+			await Task.Factory.StartNew(async () =>
+			{
+				var response = await tokenManager.ListenForResponse(scope, auth.state);
+				AddToken(response.owner, response.token);
+
+				Console.WriteLine("Yay");
+			});
+
+			return auth.authUrl;
 		}
 
 		void AddToken(string owner, IToken token)

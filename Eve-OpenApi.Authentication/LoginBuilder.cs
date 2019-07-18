@@ -28,14 +28,13 @@ namespace EveOpenApi.Authentication
 			return this;
 		}
 
-		public LoginBuilder WithCredentials(string clientID, string clientSecret, string callback, string authType)
+		public LoginBuilder WithCredentials(string clientID, string clientSecret, string callback)
 		{
 			Credentials = new LoginCredentials()
 			{
 				ClientID = clientID,
 				ClientSecret = clientSecret,
-				Callback = callback,
-				AuthType = authType
+				Callback = callback
 			};
 
 			return this;

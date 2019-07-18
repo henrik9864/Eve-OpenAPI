@@ -7,5 +7,7 @@
 		string TokenEndpoint { get; set; }
 
 		string JwtKeySetEndpoint { get; set; }
+
+		string AuthType { get; set; }
 	}
 }

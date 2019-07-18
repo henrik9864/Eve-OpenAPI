@@ -11,5 +11,7 @@ namespace EveOpenApi.Authentication
 		public string TokenEndpoint { get; set; }
 
 		public string JwtKeySetEndpoint { get; set; }
+
+		public string AuthType { get; set; }
 	}
 }

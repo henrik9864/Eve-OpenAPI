@@ -11,7 +11,5 @@ namespace EveOpenApi.Authentication
 		public string ClientSecret { get; set; }
 
 		public string Callback { get; set; }
-
-		public string AuthType { get; set; }
 	}
 }

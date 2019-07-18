@@ -32,33 +32,58 @@ namespace EveOpenApi.Authentication.Managers
 			this.client = client;
 		}
 
-		public async Task<(IToken token, string owner)> GetToken(string scope)
+		public async Task<(IToken token, string owner)> GetToken(IScope scope)
 		{
 			string state = RandomString(8);
-			string authUrl = GenerateAuthUrl(credentials.ClientID, credentials.Callback, scope, state);
+			string authUrl = GenerateAuthUrl(scope.ScopeString, state);
 
-			AuthResponse response =  await responseManager.GetResponse(authUrl);
+			AuthResponse response =  await responseManager.GetResponse(authUrl, 10000);
 
 			if (state != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			var tokenRequest = GenerateTokenRequest(response.Code);
-			var tokenResponse = await client.SendAsync(tokenRequest);
-
-			Stream tokenStream = await tokenResponse.Content.ReadAsStreamAsync();
-			IToken token = await JsonSerializer.ReadAsync<Token>(tokenStream);
-
+			IToken token = await GenerateToken(response);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		string GenerateAuthUrl(string clientID, string redirectUri, string scope, string state)
+		public (string authUrl, string state) GenerateAuthUrl(IScope scope)
+		{
+			string state = RandomString(8);
+			string url = GenerateAuthUrl(scope.ScopeString, state);
+
+			return (url, state);
+		}
+
+		public async Task<(IToken token, string owner)> ListenForResponse(IScope scope, string state)
+		{
+			AuthResponse response = await responseManager.AwaitResponse(20000);
+
+			if (state != response.State)
+				throw new Exception("Invalid auth response state.");
+
+			IToken token = await GenerateToken(response);
+			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
+
+			return (token, jwtToken.Name);
+		}
+
+		async Task<IToken> GenerateToken(AuthResponse response)
+		{
+			var tokenRequest = GenerateTokenRequest(response.Code);
+			var tokenResponse = await client.SendAsync(tokenRequest);
+
+			Stream tokenStream = await tokenResponse.Content.ReadAsStreamAsync();
+			return await JsonSerializer.ReadAsync<Token>(tokenStream);
+		}
+
+		string GenerateAuthUrl(string scope, string state)
 		{
 			return $"{config.AuthenticationEndpoint}?" +
 				$"response_type=code&" +
-				$"client_id={clientID}&" +
-				$"redirect_uri={Uri.EscapeDataString(redirectUri)}&" +
+				$"client_id={credentials.ClientID}&" +
+				$"redirect_uri={Uri.EscapeDataString(credentials.Callback)}&" +
 				$"scope={Uri.EscapeDataString(scope)}&" +
 				$"state={Uri.EscapeDataString(state)}";
 		}
@@ -72,7 +97,7 @@ namespace EveOpenApi.Authentication.Managers
 				{ "code", code }
 			};
 
-			AddAuthorization(credentials.AuthType, ref data, ref request);
+			AddAuthorization(config.AuthType, ref data, ref request);
 			request.Content = new FormUrlEncodedContent(data.ToArray());
 
 			return request;
