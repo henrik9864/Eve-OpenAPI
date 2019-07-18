@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
 {
-	public class Login : ILogin
+	public class OauthLogin : ILogin
 	{
 		public ILoginConfig Config { get; }
 
@@ -15,7 +15,7 @@ namespace EveOpenApi.Authentication
 
 		Dictionary<string, List<IToken>> userTokens;
 
-		internal Login(ILoginConfig config, ILoginCredentials credentials, ITokenManager tokenManager)
+		internal OauthLogin(ILoginConfig config, ILoginCredentials credentials, ITokenManager tokenManager)
 		{
 			Config = config;
 			Credentials = credentials;

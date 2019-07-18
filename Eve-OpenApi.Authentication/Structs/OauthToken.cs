@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace EveOpenApi.Authentication
 {
-	internal struct Token : IToken
+	internal struct OauthToken : IToken
 	{
 		[JsonPropertyName("access_token")]
 		public string AccessToken { get; set; }

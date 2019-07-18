@@ -70,7 +70,7 @@ namespace EveOpenApi.Authentication.Managers
 			var tokenResponse = await client.SendAsync(tokenRequest);
 
 			Stream tokenStream = await tokenResponse.Content.ReadAsStreamAsync();
-			return await JsonSerializer.ReadAsync<Token>(tokenStream);
+			return await JsonSerializer.ReadAsync<OauthToken>(tokenStream);
 		}
 
 		AuthUrl GenerateAuthUrl(string scope)

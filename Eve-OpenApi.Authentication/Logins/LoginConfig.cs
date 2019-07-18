@@ -13,5 +13,19 @@ namespace EveOpenApi.Authentication
 		public string JwtKeySetEndpoint { get; set; }
 
 		public string AuthType { get; set; }
+
+		public static LoginConfig Eve
+		{
+			get
+			{
+				return new LoginConfig()
+				{
+					AuthenticationEndpoint = "https://login.eveonline.com/v2/oauth/authorize/",
+					TokenEndpoint = "https://login.eveonline.com/v2/oauth/token/",
+					JwtKeySetEndpoint = "https://login.eveonline.com/oauth/jwks",
+					AuthType = "basic"
+				};
+			}
+		}
 	}
 }
