@@ -34,61 +34,64 @@ namespace EveOpenApi.Authentication.Managers
 
 		public async Task<(IToken token, string owner)> GetToken(IScope scope)
 		{
-			string state = RandomString(8);
-			string authUrl = GenerateAuthUrl(scope.ScopeString, state);
+			AuthUrl authUrl = GenerateAuthUrl(scope.ScopeString);
+			AuthResponse response =  await responseManager.GetResponse(authUrl.Url, 10000);
 
-			AuthResponse response =  await responseManager.GetResponse(authUrl, 10000);
-
-			if (state != response.State)
+			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response);
+			IToken token = await GenerateToken(response, authUrl);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		public (string authUrl, string state) GenerateAuthUrl(IScope scope)
+		public AuthUrl GenerateAuthUrl(IScope scope)
 		{
-			string state = RandomString(8);
-			string url = GenerateAuthUrl(scope.ScopeString, state);
-
-			return (url, state);
+			return GenerateAuthUrl(scope.ScopeString);
 		}
 
-		public async Task<(IToken token, string owner)> ListenForResponse(IScope scope, string state)
+		public async Task<(IToken token, string owner)> ListenForResponse(IScope scope, AuthUrl authUrl)
 		{
 			AuthResponse response = await responseManager.AwaitResponse(20000);
 
-			if (state != response.State)
+			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response);
+			IToken token = await GenerateToken(response, authUrl);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		async Task<IToken> GenerateToken(AuthResponse response)
+		async Task<IToken> GenerateToken(AuthResponse response, AuthUrl authUrl)
 		{
-			var tokenRequest = GenerateTokenRequest(response.Code);
+			var tokenRequest = GenerateTokenRequest(response.Code, authUrl.CodeVerifier);
 			var tokenResponse = await client.SendAsync(tokenRequest);
 
 			Stream tokenStream = await tokenResponse.Content.ReadAsStreamAsync();
 			return await JsonSerializer.ReadAsync<Token>(tokenStream);
 		}
 
-		string GenerateAuthUrl(string scope, string state)
+		AuthUrl GenerateAuthUrl(string scope)
 		{
-			return $"{config.AuthenticationEndpoint}?" +
+			string state = RandomString(8);
+			string codeVerifier = GetCodeVerifier();
+
+			string url = $"{config.AuthenticationEndpoint}?" +
 				$"response_type=code&" +
 				$"client_id={credentials.ClientID}&" +
 				$"redirect_uri={Uri.EscapeDataString(credentials.Callback)}&" +
 				$"scope={Uri.EscapeDataString(scope)}&" +
 				$"state={Uri.EscapeDataString(state)}";
+
+			if (string.IsNullOrEmpty(credentials.ClientSecret))
+				url += $"&code_challenge={GenerateCodeChallenge(codeVerifier)}&code_challenge_method=S256";
+
+			return new AuthUrl(url, state, codeVerifier);
 		}
 
-		HttpRequestMessage GenerateTokenRequest(string code)
+		HttpRequestMessage GenerateTokenRequest(string code, string codeVerifier)
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"{config.TokenEndpoint}");
 			Dictionary<string, string> data = new Dictionary<string, string>()
@@ -97,9 +100,12 @@ namespace EveOpenApi.Authentication.Managers
 				{ "code", code }
 			};
 
-			AddAuthorization(config.AuthType, ref data, ref request);
-			request.Content = new FormUrlEncodedContent(data.ToArray());
+			if (string.IsNullOrEmpty(credentials.ClientSecret))
+				AddPKCE(codeVerifier, ref data);
+			else
+				AddAuthorization(config.AuthType, ref data, ref request);
 
+			request.Content = new FormUrlEncodedContent(data.ToArray());
 			return request;
 		}
 
@@ -119,6 +125,13 @@ namespace EveOpenApi.Authentication.Managers
 				default:
 					throw new Exception($"Unknwon authorizaiton type '{type}'");
 			}
+		}
+
+		void AddPKCE(string codeVerifier, ref Dictionary<string, string> data)
+		{
+			data.Add("redirect_uri", credentials.Callback);
+			data.Add("client_id", credentials.ClientID);
+			data.Add("code_verifier", codeVerifier);
 		}
 
 		/// <summary>
@@ -153,6 +166,46 @@ namespace EveOpenApi.Authentication.Managers
 			generator.GetBytes(randomBytes);
 			int randomNumber = BitConverter.ToUInt16(randomBytes, 0);
 			return (int)Math.Floor((randomNumber / 65536f) * range);
+		}
+
+		/// <summary>
+		/// Generate a 32 byte code for Auth0
+		/// </summary>
+		/// <returns></returns>
+		static string GetCodeVerifier()
+		{
+			string randomString = RandomString(32); // Used to make the code challenge and verifier
+			byte[] verifierBytes = System.Text.Encoding.UTF8.GetBytes(randomString);
+
+			return UrlSafeBase64(verifierBytes);
+		}
+
+		/// <summary>
+		/// Generate a code challenge from the 32 byte code
+		/// </summary>
+		/// <param name="codeVerifier"></param>
+		/// <returns></returns>
+		static string GenerateCodeChallenge(string codeVerifier)
+		{
+			byte[] verifierBytes = System.Text.Encoding.UTF8.GetBytes(codeVerifier);
+			byte[] hash;
+			using (SHA256 myHashGen = SHA256.Create())
+			{
+				hash = myHashGen.ComputeHash(verifierBytes);
+			}
+
+			return UrlSafeBase64(hash);
+		}
+
+		/// <summary>
+		/// URL safe encode bytes to base64
+		/// </summary>
+		/// <param name="bytes"></param>
+		/// <returns></returns>
+		static string UrlSafeBase64(byte[] bytes)
+		{
+			char[] padding = { '=' };
+			return Convert.ToBase64String(bytes).TrimEnd(padding).Replace('+', '-').Replace('/', '_');
 		}
 	}
 }

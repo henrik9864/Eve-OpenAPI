@@ -34,17 +34,17 @@ namespace EveOpenApi.Authentication
 
 		public async Task<string> GetAuthUrl(IScope scope)
 		{
-			var auth = tokenManager.GenerateAuthUrl(scope);
+			var authUrl = tokenManager.GenerateAuthUrl(scope);
 
 			await Task.Factory.StartNew(async () =>
 			{
-				var response = await tokenManager.ListenForResponse(scope, auth.state);
+				var response = await tokenManager.ListenForResponse(scope, authUrl);
 				AddToken(response.owner, response.token);
 
 				Console.WriteLine("Yay");
 			});
 
-			return auth.authUrl;
+			return authUrl.Url;
 		}
 
 		void AddToken(string owner, IToken token)
