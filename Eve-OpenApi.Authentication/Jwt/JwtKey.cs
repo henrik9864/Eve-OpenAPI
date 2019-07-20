@@ -1,4 +1,4 @@
-﻿namespace Eve_OpenApi.Authentication.Jwt
+﻿namespace EveOpenApi.Authentication.Jwt
 {
 	internal struct JwtKey
 	{

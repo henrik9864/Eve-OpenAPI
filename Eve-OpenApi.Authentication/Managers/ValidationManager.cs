@@ -1,4 +1,4 @@
-﻿using Eve_OpenApi.Authentication.Jwt;
+﻿using EveOpenApi.Authentication.Jwt;
 using Jose;
 using System;
 using System.Collections.Generic;

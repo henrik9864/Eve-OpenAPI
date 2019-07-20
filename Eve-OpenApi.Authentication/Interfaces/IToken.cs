@@ -8,7 +8,9 @@ namespace EveOpenApi.Authentication
 
 		string RefreshToken { get; }
 
-		uint Expires { get; }
+		IScope Scope { get; }
+
+		DateTime Expires { get; }
 
 		string TokenType { get; }
 	}

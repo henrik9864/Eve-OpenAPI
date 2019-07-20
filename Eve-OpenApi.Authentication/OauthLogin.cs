@@ -1,6 +1,7 @@
 ﻿using EveOpenApi.Authentication.Managers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
@@ -10,6 +11,14 @@ namespace EveOpenApi.Authentication
 		public ILoginConfig Config { get; }
 
 		public ILoginCredentials Credentials { get; }
+
+		public IToken this[string user, string scope]
+		{
+			get
+			{
+				return GetToken(user, (Scope)scope);
+			}
+		}
 
 		ITokenManager tokenManager;
 
@@ -27,6 +36,7 @@ namespace EveOpenApi.Authentication
 		public async Task<IToken> AddToken(IScope scope)
 		{
 			var result = await tokenManager.GetToken(scope);
+			Console.WriteLine(result.token.AccessToken);
 			AddToken(result.owner, result.token);
 
 			return result.token;
@@ -45,6 +55,35 @@ namespace EveOpenApi.Authentication
 			});
 
 			return authUrl.Url;
+		}
+
+		public bool TryGetToken(string user, IScope scope, out IToken token)
+		{
+			userTokens.TryGetValue(user, out List<IToken> tokens);
+
+			token = tokens?.Find(a => a.Scope.IsSubset(scope));
+			return token != null;
+		}
+
+		public IToken GetToken(string user, IScope scope)
+		{
+			IToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
+
+			if (token == null)
+				throw new Exception($"No token with scope '{scope}' found");
+
+			return token;
+		}
+
+		public IList<string> GetUsers()
+		{
+			var dicList = userTokens.ToList();
+			return dicList.ConvertAll(a => a.Key);
+		}
+
+		public IList<IToken> GetTokens(string user)
+		{
+			return userTokens[user];
 		}
 
 		void AddToken(string owner, IToken token)

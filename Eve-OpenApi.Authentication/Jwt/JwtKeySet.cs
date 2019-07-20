@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace Eve_OpenApi.Authentication.Jwt
+namespace EveOpenApi.Authentication.Jwt
 {
 	internal struct JwtKeySet
 	{

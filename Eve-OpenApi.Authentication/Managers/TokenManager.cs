@@ -1,14 +1,11 @@
-﻿using System;
+﻿using EveOpenApi.Authentication.Interfaces;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Cache;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -23,12 +20,15 @@ namespace EveOpenApi.Authentication.Managers
 		IResponseManager responseManager;
 		IValidationManager validationManager;
 
-		public TokenManager(ILoginConfig config, ILoginCredentials credentials, IResponseManager responseManager, IValidationManager validationManager, IHttpHandler client)
+		ITokenFactory tokenFactory;
+
+		public TokenManager(ILoginConfig config, ILoginCredentials credentials, IResponseManager responseManager, IValidationManager validationManager, ITokenFactory tokenFactory, IHttpHandler client)
 		{
 			this.config = config;
 			this.credentials = credentials;
 			this.responseManager = responseManager;
 			this.validationManager = validationManager;
+			this.tokenFactory = tokenFactory;
 			this.client = client;
 		}
 
@@ -40,7 +40,7 @@ namespace EveOpenApi.Authentication.Managers
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response, authUrl);
+			IToken token = await GenerateToken(response, authUrl, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
@@ -58,19 +58,19 @@ namespace EveOpenApi.Authentication.Managers
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response, authUrl);
+			IToken token = await GenerateToken(response, authUrl, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		async Task<IToken> GenerateToken(AuthResponse response, AuthUrl authUrl)
+		async Task<IToken> GenerateToken(AuthResponse response, AuthUrl authUrl, IScope scope)
 		{
 			var tokenRequest = GenerateTokenRequest(response.Code, authUrl.CodeVerifier);
 			var tokenResponse = await client.SendAsync(tokenRequest);
 
-			Stream tokenStream = await tokenResponse.Content.ReadAsStreamAsync();
-			return await JsonSerializer.ReadAsync<OauthToken>(tokenStream);
+			string json = await tokenResponse.Content.ReadAsStringAsync();
+			return tokenFactory.FromJson(json, scope);
 		}
 
 		AuthUrl GenerateAuthUrl(string scope)

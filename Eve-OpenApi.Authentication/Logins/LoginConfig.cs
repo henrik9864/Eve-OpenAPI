@@ -14,6 +14,16 @@ namespace EveOpenApi.Authentication
 
 		public string AuthType { get; set; }
 
+		public string TokenLocation { get; set; }
+
+		public string TokenName { get; set; }
+
+		public string RateLimitHeader { get; set; }
+
+		public string RateLimitRemainHeader { get; set; }
+
+		public string RateLimitResetHeader { get; set; }
+
 		public static LoginConfig Eve
 		{
 			get
@@ -23,7 +33,12 @@ namespace EveOpenApi.Authentication
 					AuthenticationEndpoint = "https://login.eveonline.com/v2/oauth/authorize/",
 					TokenEndpoint = "https://login.eveonline.com/v2/oauth/token/",
 					JwtKeySetEndpoint = "https://login.eveonline.com/oauth/jwks",
-					AuthType = "basic"
+					AuthType = "basic",
+
+					TokenLocation = "query",
+					TokenName = "token",
+					RateLimitRemainHeader = "x-esi-error-limit-remain",
+					RateLimitResetHeader = "x-esi-error-limit-reset"
 				};
 			}
 		}

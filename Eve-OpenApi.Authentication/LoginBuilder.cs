@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Authentication;
+using EveOpenApi.Authentication.Interfaces;
 using EveOpenApi.Authentication.Managers;
 using System;
 using System.Collections.Generic;
@@ -59,9 +60,11 @@ namespace EveOpenApi.Authentication
 				throw new NullReferenceException("Credentials cannot be null");
 
 			IHttpHandler httpHandler = new HttpHandler();
+			ITokenFactory tokenFactory = new TokenFactory();
+
 			IResponseManager responseManager = new ResponseManager(Credentials);
 			IValidationManager validationManager = new ValidationManager(Config, httpHandler);
-			ITokenManager tokenManager = new TokenManager(Config, Credentials, responseManager, validationManager, httpHandler);
+			ITokenManager tokenManager = new TokenManager(Config, Credentials, responseManager, validationManager, tokenFactory, httpHandler);
 
 			return new OauthLogin(Config, Credentials, tokenManager);
 		}
