@@ -6,7 +6,7 @@
     <RootNamespace>EveOpenApi</RootNamespace>
     <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.3.5</Version>
+    <Version>0.4.0.1</Version>
     <Authors>Henrik</Authors>
     <Company />
     <Product />
@@ -28,16 +28,6 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.1.2" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Eve-OpenApi.Authentication\Eve-OpenApi.Authentication.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Html\ResponsePage.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
