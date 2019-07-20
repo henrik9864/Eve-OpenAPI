@@ -36,7 +36,6 @@ namespace EveOpenApi.Authentication
 		public async Task<IToken> AddToken(IScope scope)
 		{
 			var result = await tokenManager.GetToken(scope);
-			Console.WriteLine(result.token.AccessToken);
 			AddToken(result.owner, result.token);
 
 			return result.token;
@@ -50,8 +49,6 @@ namespace EveOpenApi.Authentication
 			{
 				var response = await tokenManager.ListenForResponse(scope, authUrl);
 				AddToken(response.owner, response.token);
-
-				Console.WriteLine("Yay");
 			});
 
 			return authUrl.Url;

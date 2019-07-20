@@ -61,6 +61,6 @@ namespace EveOpenApi.Api
 		/// </summary>
 		/// <param name="users"></param>
 		/// <returns></returns>
-		IApiPath SetDefaultUsers(params string[] users);
+		IApiPath SetUsers(params string[] users);
 	}
 }

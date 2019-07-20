@@ -27,7 +27,7 @@ namespace EveOpenApi.Api
 			DefaultUsers = new List<string>() { defaultUser };
 		}
 
-		public IApiPath SetDefaultUsers(params string[] users)
+		public IApiPath SetUsers(params string[] users)
 		{
 			if (users.Any(x => string.IsNullOrEmpty(x)))
 				throw new Exception("Users cannot be null or empty");
