@@ -1,11 +1,4 @@
-﻿using EveOpenApi.Eve;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-
-namespace EveOpenApi.DependencyInjection
+﻿namespace EveOpenApi.DependencyInjection
 {
 	/*
 	public class EveWebLoginExtension : EveWebLogin

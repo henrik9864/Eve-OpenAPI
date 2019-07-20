@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;

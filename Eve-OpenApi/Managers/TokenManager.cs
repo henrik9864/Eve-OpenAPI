@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace EveOpenApi.Managers
 			if (!Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
 				throw new Exception($"No token with scope '{request.Scope}'");
 
-			AddTokenLocation(request, await token.GetToken());
+			AddTokenLocation(request, token.AccessToken);
 		}
 
 		/// <summary>
@@ -59,16 +60,16 @@ namespace EveOpenApi.Managers
 		/// <param name="token"></param>
 		void AddTokenLocation(IApiRequest request, string token)
 		{
-			switch (Login.LoginSetup.TokenLocation)
+			switch (Login.Config.TokenLocation)
 			{
 				case "header":
-					if (request.Parameters.Headers.Exists(a => a.Key == Login.LoginSetup.TokenName))
+					if (request.Parameters.Headers.Exists(a => a.Key == Login.Config.TokenName))
 						return;
 
-					request.SetHeader(Login.LoginSetup.TokenName, token);
+					request.SetHeader(Login.Config.TokenName, token);
 					break;
 				case "query":
-					request.AddToQuery(Login.LoginSetup.TokenName, token);
+					request.AddToQuery(Login.Config.TokenName, token);
 					break;
 				default:
 					throw new Exception("Unknown access token location");

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using EveOpenApi.Api;
+using EveOpenApi.Authentication;
 using EveOpenApi.Enums;
 using EveOpenApi.Interfaces;
 using Microsoft.OpenApi.Models;

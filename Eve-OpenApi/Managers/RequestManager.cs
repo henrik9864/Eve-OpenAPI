@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using System;
@@ -102,7 +103,7 @@ namespace EveOpenApi.Managers
 							break;
 					}
 				}
-				else if (item.Required && Login?.LoginSetup.TokenLocation != "query" && Login?.LoginSetup.TokenName == item.Name)
+				else if (item.Required && Login?.Config.TokenLocation != "query" && Login?.Config.TokenName == item.Name)
 					throw new Exception($"Required parameter '{item.Name}' not supplied.");
 			}
 

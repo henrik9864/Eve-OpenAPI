@@ -1,16 +1,9 @@
 ﻿using EveOpenApi;
 using EveOpenApi.Api;
 using EveOpenApi.Api.Configs;
-using EveOpenApi.DependencyInjection;
-using EveOpenApi.Eve;
 using EveOpenApi.Interfaces;
-using EveOpenApi.Seat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -36,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
 		public static IServiceCollection AddEve(this IServiceCollection services, IConfiguration config)
 		{
 			services.AddSingleton<HttpClient>();
-			services.Configure<EveWebLoginConfig>(config.GetSection("EveConfig"));
+			//services.Configure<EveWebLoginConfig>(config.GetSection("EveConfig"));
 			//services.AddSingleton<ILogin, EveWebLoginExtension>();
 
 			return services;
@@ -45,8 +38,8 @@ namespace Microsoft.Extensions.DependencyInjection
 		public static IServiceCollection AddSeat(this IServiceCollection services, IConfiguration config)
 		{
 			services.AddSingleton<HttpClient>();
-			services.Configure<SeatConfig>(config.GetSection("SeatConfig"));
-			services.AddSingleton<ILogin, SeatLogin>();
+			//services.Configure<SeatConfig>(config.GetSection("SeatConfig"));
+			//services.AddSingleton<ILogin, SeatLogin>();
 
 			return services;
 		}

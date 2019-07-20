@@ -7,6 +7,8 @@ namespace EveOpenApi.Authentication
 	{
 		//ILoginSetup LoginSetup { get; }
 
+		ILoginConfig Config { get; }
+
 		IToken this[string user, string scope] { get; }
 
 		Task<IToken> AddToken(IScope scope);

@@ -1,17 +1,10 @@
-﻿using EveOpenApi.Enums;
-using EveOpenApi.Api;
+﻿using EveOpenApi.Api;
 using EveOpenApi.Interfaces;
-using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using EveOpenApi.Api.Configs;
 using System.Net;
+using EveOpenApi.Authentication;
 
 namespace EveOpenApi
 {

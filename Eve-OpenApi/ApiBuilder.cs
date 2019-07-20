@@ -1,18 +1,13 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Api.Factories;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace EveOpenApi
 {
