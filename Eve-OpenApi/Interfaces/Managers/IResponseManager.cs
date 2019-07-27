@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using EveOpenApi.Api;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi.Managers
 {

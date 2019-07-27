@@ -1,5 +1,7 @@
 ﻿using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi
 {

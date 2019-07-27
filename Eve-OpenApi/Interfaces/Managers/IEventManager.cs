@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using EveOpenApi.Api;
 using EveOpenApi.Enums;
 using Microsoft.OpenApi.Models;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi.Managers
 {

@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi.Authentication.Managers
 {
