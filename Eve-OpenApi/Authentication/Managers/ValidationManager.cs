@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
@@ -30,7 +31,7 @@ namespace EveOpenApi.Authentication.Managers
 			using (HttpResponseMessage response = await client.GetAsync(config.JwtKeySetEndpoint))
 			{
 				Stream stream = await response.Content.ReadAsStreamAsync();
-				JwtKeySet keySet = await JsonSerializer.ReadAsync<JwtKeySet>(stream);
+				JwtKeySet keySet = await JsonSerializer.DeserializeAsync<JwtKeySet>(stream);
 
 				var headers = JWT.Headers(token.AccessToken);
 				var jwk = keySet.Keys[1];

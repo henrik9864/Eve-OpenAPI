@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EveOpenApi.Authentication
@@ -16,7 +17,7 @@ namespace EveOpenApi.Authentication
 
 		public IToken FromJson(string json, IScope scope)
 		{
-			OauthToken token = JsonSerializer.Parse<OauthToken>(json);
+			OauthToken token = JsonSerializer.Deserialize<OauthToken>(json);
 			return new Token(token, scope);
 		}
 	}
