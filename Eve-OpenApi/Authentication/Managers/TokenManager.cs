@@ -42,7 +42,15 @@ namespace EveOpenApi.Authentication.Managers
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response, authUrl, scope);
+			IToken token = await GetToken(response, authUrl, scope);
+			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
+
+			return (token, jwtToken.Name);
+		}
+
+		public async Task<(IToken token, string owner)> RefreshToken(string refreshToken, IScope scope)
+		{
+			IToken token = await GetToken(refreshToken, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
@@ -60,15 +68,31 @@ namespace EveOpenApi.Authentication.Managers
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GenerateToken(response, authUrl, scope);
+			IToken token = await GetToken(response, authUrl, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		async Task<IToken> GenerateToken(AuthResponse response, AuthUrl authUrl, IScope scope)
+		/// <summary>
+		/// Creates a token from the SSO response
+		/// </summary>
+		/// <param name="response"></param>
+		/// <param name="authUrl"></param>
+		/// <param name="scope"></param>
+		/// <returns></returns>
+		async Task<IToken> GetToken(AuthResponse response, AuthUrl authUrl, IScope scope)
 		{
-			var tokenRequest = GenerateTokenRequest(response.Code, authUrl.CodeVerifier);
+			var tokenRequest = GetTokenRequest(response.Code, authUrl.CodeVerifier);
+			var tokenResponse = await client.SendAsync(tokenRequest);
+
+			string json = await tokenResponse.Content.ReadAsStringAsync();
+			return tokenFactory.FromJson(json, scope);
+		}
+
+		async Task<IToken> GetToken(string refreshToken, IScope scope)
+		{
+			var tokenRequest = GetRefreshTokenRequest(refreshToken, scope.ScopeString);
 			var tokenResponse = await client.SendAsync(tokenRequest);
 
 			string json = await tokenResponse.Content.ReadAsStringAsync();
@@ -93,7 +117,7 @@ namespace EveOpenApi.Authentication.Managers
 			return new AuthUrl(url, state, codeVerifier);
 		}
 
-		HttpRequestMessage GenerateTokenRequest(string code, string codeVerifier)
+		HttpRequestMessage GetTokenRequest(string code, string codeVerifier)
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"{config.TokenEndpoint}");
 			Dictionary<string, string> data = new Dictionary<string, string>()
@@ -106,6 +130,21 @@ namespace EveOpenApi.Authentication.Managers
 				AddPKCE(codeVerifier, ref data);
 			else
 				AddAuthorization(config.AuthType, ref data, ref request);
+
+			request.Content = new FormUrlEncodedContent(data.ToArray());
+			return request;
+		}
+
+		HttpRequestMessage GetRefreshTokenRequest(string refreshToken, string scope)
+		{
+			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"{config.TokenEndpoint}");
+			Dictionary<string, string> data = new Dictionary<string, string>()
+			{
+				{ "grant_type", "refresh_token" },
+				{ "refresh_token", refreshToken },
+				{ "scope", scope },
+				{ "client_id", credentials.ClientID }
+			};
 
 			request.Content = new FormUrlEncodedContent(data.ToArray());
 			return request;
@@ -129,6 +168,11 @@ namespace EveOpenApi.Authentication.Managers
 			}
 		}
 
+		/// <summary>
+		/// Add PKCE query parameters
+		/// </summary>
+		/// <param name="codeVerifier"></param>
+		/// <param name="data"></param>
 		void AddPKCE(string codeVerifier, ref Dictionary<string, string> data)
 		{
 			data.Add("redirect_uri", credentials.Callback);

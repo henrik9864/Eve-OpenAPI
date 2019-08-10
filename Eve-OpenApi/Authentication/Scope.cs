@@ -79,6 +79,9 @@ namespace EveOpenApi.Authentication
 
 		public static Scope Parse(string scope)
 		{
+			if (scope is null)
+				scope = "";
+
 			Scope esiScope = new Scope();
 			string[] scopes = scope.Split(' ');
 

@@ -49,6 +49,9 @@ namespace EveOpenApi.Managers
 			if (Login is null && Config.AlwaysIncludeAuthHeader)
 				AddTokenLocation(request, "");
 
+			if (string.IsNullOrEmpty(request.GetUser(index)))
+				throw new Exception("User cannot be null or empty, please set a default user.");
+
 			if (!Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
 				throw new Exception($"No token with scope '{request.Scope}'");
 

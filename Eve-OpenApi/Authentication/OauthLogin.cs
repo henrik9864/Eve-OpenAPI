@@ -1,7 +1,10 @@
 ﻿using EveOpenApi.Authentication.Managers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
@@ -39,6 +42,19 @@ namespace EveOpenApi.Authentication
 			AddToken(result.owner, result.token);
 
 			return result.token;
+		}
+
+		public async Task<IToken> AddToken(string refreshToken, IScope scope)
+		{
+			var result = await tokenManager.RefreshToken(refreshToken, scope);
+			AddToken(result.owner, result.token);
+
+			return result.token;
+		}
+
+		public Task<IToken> RefreshToken(IToken token)
+		{
+			return AddToken(token.RefreshToken, token.Scope);
 		}
 
 		public async Task<string> GetAuthUrl(IScope scope)
@@ -81,6 +97,25 @@ namespace EveOpenApi.Authentication
 		public IList<IToken> GetTokens(string user)
 		{
 			return userTokens[user];
+		}
+
+		public void SaveToFile(string path, bool @override)
+		{
+			if (File.Exists(path) && !@override)
+				throw new Exception("File already exists, enable override to override it.");
+
+			List<TokenSave> tokens = userTokens.Values
+				.SelectMany(x => x)
+				.ToList()
+				.ConvertAll(a => new TokenSave(a.RefreshToken, a.Scope.ScopeString));
+
+			string json = JsonSerializer.Serialize(tokens);
+
+			// Use client secret if supplied
+			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
+			string encryptedJson = StringCipher.Encrypt(json, passPhrase);
+
+			File.WriteAllText(path, encryptedJson);
 		}
 
 		void AddToken(string owner, IToken token)

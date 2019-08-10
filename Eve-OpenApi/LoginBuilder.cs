@@ -3,7 +3,10 @@ using EveOpenApi.Authentication.Interfaces;
 using EveOpenApi.Authentication.Managers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
 {
@@ -13,11 +16,14 @@ namespace EveOpenApi.Authentication
 
 		public ILoginCredentials Credentials { get; private set; }
 
+		private List<TokenSave> Tokens { get; set; }
+
 		public LoginBuilder()
 		{
+			Tokens = new List<TokenSave>();
 		}
 
-		public LoginBuilder(ILoginConfig config)
+		public LoginBuilder(ILoginConfig config) : this()
 		{
 			Config = config;
 		}
@@ -51,7 +57,18 @@ namespace EveOpenApi.Authentication
 			return this;
 		}
 
-		public ILogin BuildOauth()
+		public LoginBuilder FromFile(string path)
+		{
+			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
+			string encryptedJson = File.ReadAllText(path);
+
+			string json = StringCipher.Decrypt(encryptedJson, passPhrase);
+			Tokens = JsonSerializer.Deserialize<List<TokenSave>>(json);
+
+			return this;
+		}
+
+		public async Task<ILogin> BuildOauth()
 		{
 			if (Config is null)
 				throw new NullReferenceException("Config cannot be null");
@@ -66,10 +83,14 @@ namespace EveOpenApi.Authentication
 			IValidationManager validationManager = new ValidationManager(Config, httpHandler);
 			ITokenManager tokenManager = new TokenManager(Config, Credentials, responseManager, validationManager, tokenFactory, httpHandler);
 
-			return new OauthLogin(Config, Credentials, tokenManager);
+			ILogin login = new OauthLogin(Config, Credentials, tokenManager);
+			for (int i = 0; i < Tokens.Count; i++) // Readd all tokens from saved file.
+				await login.AddToken(Tokens[i].RefreshToken, (Scope)Tokens[i].Scope);
+
+			return login;
 		}
 
-		public ILogin BuildEve()
+		public Task<ILogin> BuildEve()
 		{
 			Config = LoginConfig.Eve;
 			return BuildOauth();

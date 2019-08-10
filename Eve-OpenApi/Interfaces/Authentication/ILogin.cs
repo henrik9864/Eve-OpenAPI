@@ -13,6 +13,10 @@ namespace EveOpenApi.Authentication
 
 		Task<IToken> AddToken(IScope scope);
 
+		Task<IToken> AddToken(string refreshToken, IScope scope);
+
+		Task<IToken> RefreshToken(IToken token);
+
 		Task<string> GetAuthUrl(IScope scope);
 
 		bool TryGetToken(string user, IScope scope, out IToken token);
@@ -22,5 +26,7 @@ namespace EveOpenApi.Authentication
 		IList<string> GetUsers();
 
 		IList<IToken> GetTokens(string user);
+
+		void SaveToFile(string path, bool @override);
 	}
 }

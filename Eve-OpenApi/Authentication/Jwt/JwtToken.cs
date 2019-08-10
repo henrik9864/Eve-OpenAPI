@@ -17,8 +17,10 @@ namespace EveOpenApi.Authentication
 		[JsonProperty("azp")]
 		public string ClientID { get; set; }
 
+		[JsonProperty("name")]
 		public string Name { get; set; }
 
+		[JsonProperty("owner")]
 		public string Owner { get; set; }
 
 		[JsonProperty("exp")]
