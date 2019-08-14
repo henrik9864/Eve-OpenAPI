@@ -7,13 +7,13 @@ namespace EveOpenApi.Managers.CacheControl
 {
 	public class CacheControl
 	{
-		internal Cacheability Cacheability { get; } = Cacheability.Public;
+		public Cacheability Cacheability { get; } = Cacheability.Public;
 
-		internal uint TimeUntillStale { get; } = 60;
+		public uint TimeUntillStale { get; } = 60;
 
-		internal Validation Validation { get; } = Validation.MustRevalidate;
+		public Validation Validation { get; } = Validation.MustRevalidate;
 
-		public CacheControl(string cacheControl)
+		internal CacheControl(string cacheControl)
 		{
 			string[] items = cacheControl.Split(',');
 

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -12,17 +13,17 @@ namespace EveOpenApi.Api
 
 		public HttpStatusCode StatusCode { get; }
 
-		internal ApiError(string eTag, string response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
+		internal ApiError(string eTag, IEnumerable<string> response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
 			: base(eTag, response, expired, cacheControl)
 		{
-			if (response.Length > 0 && response[0] == '{')
+			if (response.First().Length > 0 && response.First()[0] == '{')
 			{
-				dynamic jObj = JsonConvert.DeserializeObject(base.Response);
+				dynamic jObj = JsonConvert.DeserializeObject(base.FirstPage);
 				Error = jObj.error;
 			}
 			else
 			{
-				Error = response;
+				Error = response.First();
 			}
 
 			StatusCode = statusCode;

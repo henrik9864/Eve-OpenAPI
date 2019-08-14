@@ -147,7 +147,7 @@ namespace EveOpenApi.Managers
 			IApiResponse now = await cacheManager.GetResponse(request, index);
 
 			if (now is ApiError)
-				throw new Exception(now.Response);
+				throw new Exception(now.FirstPage);
 
 			TryInvokeEvent(EventType.Update, request.GetHashCode(index), now, old);
 

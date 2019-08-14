@@ -1,7 +1,9 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Authentication;
+using EveOpenApi.Authentication.Managers;
 using EveOpenApi.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -24,28 +26,75 @@ namespace EveOpenApi.Managers
 		{
 		}
 
-		public async Task<IApiResponse> GetResponse(IApiRequest request, int index)
+		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request)
 		{
-			HttpResponseMessage response = await GetHttpResponse(request, index);
-			IApiResponse esiResponse = await GetEsiResponse(response);
-
-			CheckRateLimit(response);
-			return esiResponse;
-		}
-
-		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index)
-		{
-			IApiResponse esiResponse = await GetResponse(request, index);
+			IApiResponse esiResponse = await GetResponse(request);
 			return esiResponse.ToType<T>();
 		}
 
-		async Task<HttpResponseMessage> GetHttpResponse(IApiRequest request, int index)
+		public async Task<IApiResponse> GetResponse(IApiRequest request)
 		{
-			Uri requestUri = new Uri(request.GetRequestUrl(index));
-			HttpRequestMessage requestMessage = new HttpRequestMessage(request.Method, requestUri);
+			return await GetAllPages(request);
+		}
 
-			foreach (var item in request.Parameters.Headers)
+		async Task<IApiResponse> GetAllPages(IApiRequest request)
+		{
+			// Get response from api and check rate limit
+			var httpResponse = await GetHttpRequest(request);
+			await CheckRateLimit(httpResponse);
+
+			// Get page info from header and save response as first page
+			int pages = GetPages(httpResponse);
+			string[] responseArr = new string[pages];
+			responseArr[0] = await httpResponse.Content.ReadAsStringAsync();
+
+			// Get headers to use later
+			string eTag = TryGetHeaderValue(httpResponse.Headers, "etag");
+			string expireString = TryGetHeaderValue(httpResponse.Content.Headers, "expires");
+			string cacheControlString = TryGetHeaderValue(httpResponse.Content.Headers, "cache-control");
+
+			// Return an error if the request failed
+			DateTime expired = ParseDateTime(expireString);
+			if (!httpResponse.IsSuccessStatusCode)
+				return new ApiError(eTag, responseArr, expired, cacheControlString, httpResponse.StatusCode);
+
+			for (int i = 1; i < pages; i++)
+				responseArr[i] = await GetPage(request, i);
+
+			return new ApiResponse(eTag, responseArr, expired, cacheControlString);
+		}
+
+		async Task<HttpResponseMessage> GetHttpRequest(IApiRequest request)
+		{
+			HttpRequestMessage requestMessage = new HttpRequestMessage(request.HttpMethod, request.RequestUri);
+			foreach (var item in request.Headers)
 				requestMessage.Headers.TryAddWithoutValidation(item.Key, item.Value);
+
+			return await Client.SendAsync(requestMessage);
+		}
+
+		async Task<string> GetPage(IApiRequest request, int page)
+		{
+			request.SetParameter("page", page.ToString());
+
+			var httpResponse = await GetHttpRequest(request);
+			await CheckRateLimit(httpResponse);
+
+			// Throw an exception if server errors in the middle of fetching pages
+			if (!httpResponse.IsSuccessStatusCode)
+				throw new Exception($"Error fetching pages for '{request.RequestUri.AbsolutePath}' CODE {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
+
+			return await httpResponse.Content.ReadAsStringAsync();
+		}
+
+		async Task CheckRateLimit(HttpResponseMessage response)
+		{
+			string errorRemainString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitHeader);
+			string errorResetString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitResetHeader);
+
+			int.TryParse(errorRemainString, out errorRemain);
+			int.TryParse(errorResetString, out int errorResetTime);
+			errorReset = DateTime.Now + new TimeSpan(0, 0, errorResetTime);
 
 			// Throttle requests if users send too many errors.
 			if (errorRemain <= 0 && errorReset > DateTime.Now)
@@ -55,41 +104,12 @@ namespace EveOpenApi.Managers
 				else
 					throw new Exception("Rate limit reached.");
 			}
-
-			return await Client.SendAsync(requestMessage);
 		}
 
-		async Task<IApiResponse> GetEsiResponse(HttpResponseMessage response)
+		int GetPages(HttpResponseMessage response)
 		{
-			string eTag = TryGetHeaderValue(response.Headers, "etag");
-			string expires = TryGetHeaderValue(response.Content.Headers, "expires");
-			string cacheControl = TryGetHeaderValue(response.Content.Headers, "cache-control");
-			string json = await response.Content.ReadAsStringAsync();
-
-			DateTime parsedExpiery;
-			if (!string.IsNullOrEmpty(expires))
-				parsedExpiery = DateTime.ParseExact(expires, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
-			else
-				parsedExpiery = default;
-
-			// Bad
-			switch (response.StatusCode)
-			{
-				case HttpStatusCode.OK:
-					return new ApiResponse(eTag, json, parsedExpiery, cacheControl);
-				default:
-					return new ApiError(eTag, json, parsedExpiery, cacheControl, response.StatusCode);
-			}
-		}
-
-		void CheckRateLimit(HttpResponseMessage response)
-		{
-			string errorRemainString = TryGetHeaderValue(response.Headers, "x-esi-error-limit-remain");
-			string errorResetString = TryGetHeaderValue(response.Headers, "x-esi-error-limit-reset");
-
-			int.TryParse(errorRemainString, out errorRemain);
-			int.TryParse(errorResetString, out int errorResetTime);
-			errorReset = DateTime.Now + new TimeSpan(0, 0, errorResetTime);
+			string pageString = TryGetHeaderValue(response.Content.Headers, "x-pages");
+			return int.Parse(pageString);
 		}
 
 		string TryGetHeaderValue(HttpHeaders header, string name)
@@ -98,6 +118,15 @@ namespace EveOpenApi.Managers
 				return list.FirstOrDefault();
 
 			return "";
+		}
+
+		DateTime ParseDateTime(string dateTime)
+		{
+			DateTime parsedExpiery = default;
+			if (!string.IsNullOrEmpty(dateTime))
+				parsedExpiery = DateTime.ParseExact(dateTime, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+
+			return parsedExpiery;
 		}
 	}
 }

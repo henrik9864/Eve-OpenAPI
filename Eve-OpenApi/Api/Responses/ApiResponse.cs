@@ -1,7 +1,9 @@
 ﻿using EveOpenApi.Managers.CacheControl;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EveOpenApi.Api
@@ -10,11 +12,13 @@ namespace EveOpenApi.Api
 	{
 		public string ETag { get; }
 
-		public string Response { get; }
+		public string FirstPage { get; }
+
+		public int MaxPages { get; }
 
 		public DateTime Expired { get; private set; }
 
-		DateTime IApiResponse.Expired
+		DateTime IApiResponseInfo.Expired
 		{
 			get
 			{
@@ -29,34 +33,39 @@ namespace EveOpenApi.Api
 		public CacheControl CacheControl { get; }
 
 		string cacheControlString;
+		IEnumerable<string> response;
 
-		internal ApiResponse(string eTag, string response, DateTime expired, string cacheControl)
+		internal ApiResponse(string eTag, IEnumerable<string> response, DateTime expired, string cacheControl)
 		{
 			ETag = eTag;
-			Response = response;
 			Expired = expired;
 			CacheControl = new CacheControl(cacheControl);
 			cacheControlString = cacheControl;
-		}
-
-		public void UpdateExpiery(IApiResponse newResponse)
-		{
-			Expired = newResponse.Expired;
+			FirstPage = response.FirstOrDefault();
 		}
 
 		public override int GetHashCode()
 		{
 			int hash = 17;
 			hash *= 23 + ETag.GetHashCode();
-			hash *= 23 + Response.GetHashCode();
-			//hash *= 23 + Expired.GetHashCode();
+			hash *= 23 + FirstPage.GetHashCode();
 
 			return hash;
 		}
 
 		public virtual IApiResponse<T> ToType<T>()
 		{
-			return new ApiResponse<T>(ETag, Response, Expired, cacheControlString);
+			return new ApiResponse<T>(ETag, response, Expired, cacheControlString);
+		}
+
+		public IEnumerator<string> GetEnumerator()
+		{
+			return response.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return response.GetEnumerator();
 		}
 	}
 }

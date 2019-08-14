@@ -1,27 +1,7 @@
-﻿using EveOpenApi.Managers.CacheControl;
-using System;
-
-namespace EveOpenApi.Api
+﻿namespace EveOpenApi.Api
 {
-	public interface IApiResponse
+	public interface IApiResponse : IPaginatedResponse<string>, IApiResponseInfo
 	{
-		/// <summary>
-		/// Return E-Tag from the API
-		/// </summary>
-		string ETag { get; }
-
-		/// <summary>
-		/// When this response is stale
-		/// </summary>
-		DateTime Expired { get; internal set; }
-
-		/// <summary>
-		/// Raw response from the API
-		/// </summary>
-		string Response { get; }
-
-		CacheControl CacheControl { get; }
-
 		int GetHashCode();
 
 		/// <summary>

@@ -74,7 +74,7 @@ namespace EveOpenApi.Managers
 					request.SetHeader(Login.Config.TokenName, token);
 					break;
 				case "query":
-					request.AddToQuery(Login.Config.TokenName, token);
+					request.SetParameter(Login.Config.TokenName, token);
 					break;
 				default:
 					throw new Exception("Unknown access token location");

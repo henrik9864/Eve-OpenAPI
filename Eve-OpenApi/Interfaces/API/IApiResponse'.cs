@@ -1,10 +1,9 @@
-﻿namespace EveOpenApi.Api
+﻿using EveOpenApi.Managers.CacheControl;
+using System;
+
+namespace EveOpenApi.Api
 {
-	public interface IApiResponse<T> : IApiResponse
+	public interface IApiResponse<T> : IPaginatedResponse<T>, IApiResponseInfo
 	{
-		/// <summary>
-		/// Response from the API deserialized into type.
-		/// </summary>
-		new T Response { get; }
 	}
 }

@@ -13,7 +13,7 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		Task<IList<IApiResponse>> GetResponse(IApiRequest request);
+		Task<IEnumerable<IApiResponse>> GetResponse(IEnumerable<IApiRequest> request);
 
 		/// <summary>
 		/// Get a response from a ApiRequest
@@ -21,7 +21,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">Wich request to execute</param>
 		/// <returns></returns>
-		Task<IApiResponse> GetResponse(IApiRequest request, int index);
+		Task<IApiResponse> GetResponse(IApiRequest request);
 
 		/// <summary>
 		/// Get all responsen from a ApiRequest of type
@@ -29,7 +29,7 @@ namespace EveOpenApi.Managers
 		/// <typeparam name="T"></typeparam>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		Task<IList<IApiResponse<T>>> GetResponse<T>(IApiRequest request);
+		Task<IEnumerable<IApiResponse<T>>> GetResponse<T>(IEnumerable<IApiRequest> request);
 
 		/// <summary>
 		/// Get a response from a ApiRequest of type
@@ -38,8 +38,8 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">Wich request to execute</param>
 		/// <returns></returns>
-		Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index);
+		Task<IApiResponse<T>> GetResponse<T>(IApiRequest request);
 
-		bool TryHitCache(IApiRequest request, int index, bool validateTime, out IApiResponse response);
+		bool TryHitCache(IApiRequest request, bool validateTime, out IApiResponse response);
 	}
 }
