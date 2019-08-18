@@ -60,7 +60,7 @@ namespace EveOpenApi.Managers
 		{
 			if (Config.UseRequestQueue)
 			{
-				int id = await AddToRequestQueue(request);
+				int id = AddToRequestQueue(request);
 				return await requestQueue.AwaitResponse(id);
 			}
 			else
@@ -73,7 +73,7 @@ namespace EveOpenApi.Managers
 		{
 			List<int> ids = new List<int>();
 			foreach (IApiRequest request in requests)
-				ids.Add(await AddToRequestQueue(request));
+				ids.Add(AddToRequestQueue(request));
 
 			IApiResponse[] responses = new IApiResponse[ids.Count];
 			for (int i = 0; i < ids.Count; i++)
@@ -82,9 +82,9 @@ namespace EveOpenApi.Managers
 			return responses;
 		}
 
-		async Task<int> AddToRequestQueue(IApiRequest request)
+		int AddToRequestQueue(IApiRequest request)
 		{
-			await tokenManager.AddAuthTokens(request);
+			tokenManager.AddAuthTokens(request);
 
 			if (string.IsNullOrEmpty(Config.UserAgent))
 				throw new Exception("User-Agent must be set.");

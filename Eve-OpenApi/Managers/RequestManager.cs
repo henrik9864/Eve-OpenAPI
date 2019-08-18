@@ -3,6 +3,7 @@ using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -16,10 +17,13 @@ namespace EveOpenApi.Managers
 	internal class RequestManager : BaseManager, IRequestManager
 	{
 		ICacheManager cacheManager;
+		IFactory<IApiRequest> apiRequestFactory;
+
 		OpenApiDocument spec;
 
-		public RequestManager(IHttpHandler client, IApiConfig config, ILogin login, ICacheManager cacheManager, OpenApiDocument spec) : base(client, login, config)
+		public RequestManager(IHttpHandler client, IApiConfig config, ILogin login, ICacheManager cacheManager, IFactory<IApiRequest> apiRequestFactory, OpenApiDocument spec) : base(client, login, config)
 		{
+			this.apiRequestFactory = apiRequestFactory;
 			this.cacheManager = cacheManager;
 			this.spec = spec;
 		}
@@ -33,10 +37,10 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<IList<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public async Task<IEnumerable<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await cacheManager.GetResponse(request);
+			IEnumerable<IApiRequest> requests = GetRequest(path, type, parameters, users, operation);
+			return await cacheManager.GetResponse(requests);
 		}
 
 		/// <summary>
@@ -49,20 +53,30 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters">Parameters supplide by the user.</param>
 		/// <param name="operation">OpenAPI operation for this path.</param>
 		/// <returns></returns>
-		public async Task<IList<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public async Task<IEnumerable<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			ApiRequest request = GetRequest(path, type, parameters, users, operation);
-			return await cacheManager.GetResponse<T>(request);
+			IEnumerable<IApiRequest> requests = GetRequest(path, type, parameters, users, operation);
+			return await cacheManager.GetResponse<T>(requests);
 		}
 
-		public ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public IEnumerable<IApiRequest> GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
-			var parsed = ParseParameters(operation, parameters, users);
+			ParsedParameters parsed = ParseParameters(operation, parameters, users);
 			string baseUrl = $"{spec.Servers[0].Url}";
 			string scope = GetScope(operation);
 			HttpMethod httpMethod = OperationToMethod(type);
 
-			return new ApiRequest(baseUrl, path, scope, httpMethod, parsed);
+			IApiRequest[] requests = new IApiRequest[parsed.MaxLength];
+			for (int i = 0; i < parsed.MaxLength; i++)
+			{
+				string url = GetRequestUrl($"{baseUrl}{path}?", parsed, i);
+				IDictionary<string, string> headers = parsed.Headers.ToDictionary(x => x.Key, x => FirstOrIndex(x.Value, i));
+
+				requests[i] = apiRequestFactory.Create(new Uri(url), FirstOrIndex(users, i), scope, headers, httpMethod);
+			}
+
+			return requests;
+			//return new ApiRequest(baseUrl, path, scope, httpMethod, parsed);
 		}
 
 		/// <summary>
@@ -158,6 +172,38 @@ namespace EveOpenApi.Managers
 				default:
 					throw new Exception("Dafuq");
 			}
+		}
+
+		/// <summary>
+		/// Create a request url from parsed parameters
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		string GetRequestUrl(string basePath, ParsedParameters parsed, int index)
+		{
+			// Replace paremetrs in path with correct value
+			foreach (var item in parsed.PathParameters)
+				basePath = basePath.Replace($"{{{item.Key}}}", $"{FirstOrIndex(item.Value, index)}");
+
+			foreach (var item in parsed.Queries)
+				basePath += $"{item.Key}={FirstOrIndex(item.Value, index)}&";
+
+			return basePath[0..^1]; // Removes last &
+		}
+
+		/// <summary>
+		/// If the list only has one item always use the first item.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		T FirstOrIndex<T>(List<T> list, int index)
+		{
+			if (list.Count == 1)
+				return list[0];
+
+			return list[index];
 		}
 	}
 }

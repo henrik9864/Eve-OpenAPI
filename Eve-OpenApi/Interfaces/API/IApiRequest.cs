@@ -12,6 +12,8 @@ namespace EveOpenApi.Api
 
 		public string User { get; }
 
+		public string Scope { get; }
+
 		public IDictionary<string, string> Headers { get; }
 
 		/// <summary>

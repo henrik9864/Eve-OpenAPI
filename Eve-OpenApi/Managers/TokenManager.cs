@@ -19,20 +19,17 @@ namespace EveOpenApi.Managers
 
 
 		/// <summary>
-		/// Add auth token to all requests
+		/// Add auth token to request
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public async Task AddAuthTokens(IApiRequest request)
+		public void AddAuthTokens(IApiRequest request)
 		{
 			if (Login is null && !string.IsNullOrEmpty(request.Scope))
 				throw new Exception("No login provided");
 
 			if (Login != null || Config.AlwaysIncludeAuthHeader)
-			{
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					await AddAuthToken(request, i);
-			}
+				AddAuthToken(request);
 		}
 
 		/// <summary>
@@ -41,7 +38,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">Wich request to add to</param>
 		/// <returns></returns>
-		async Task AddAuthToken(IApiRequest request, int index)
+		void AddAuthToken(IApiRequest request)
 		{
 			if (string.IsNullOrEmpty(request.Scope))
 				return;
@@ -49,10 +46,10 @@ namespace EveOpenApi.Managers
 			if (Login is null && Config.AlwaysIncludeAuthHeader)
 				AddTokenLocation(request, "");
 
-			if (string.IsNullOrEmpty(request.GetUser(index)))
+			if (string.IsNullOrEmpty(request.User))
 				throw new Exception("User cannot be null or empty, please set a default user.");
 
-			if (!Login.TryGetToken(request.GetUser(index), (Scope)request.Scope, out IToken token))
+			if (!Login.TryGetToken(request.User, (Scope)request.Scope, out IToken token))
 				throw new Exception($"No token with scope '{request.Scope}'");
 
 			AddTokenLocation(request, token.AccessToken);
@@ -68,9 +65,6 @@ namespace EveOpenApi.Managers
 			switch (Login.Config.TokenLocation)
 			{
 				case "header":
-					if (request.Parameters.Headers.Exists(a => a.Key == Login.Config.TokenName))
-						return;
-
 					request.SetHeader(Login.Config.TokenName, token);
 					break;
 				case "query":

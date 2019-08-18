@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using EveOpenApi.Api;
@@ -18,7 +19,7 @@ namespace EveOpenApi.Managers
 		/// <param name="users"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		Task<IList<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
+		Task<IEnumerable<IApiResponse>> RequestBatch(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
 
 		/// <summary>
 		/// Create and execute a ApiRequest of type and return all responses.
@@ -30,8 +31,8 @@ namespace EveOpenApi.Managers
 		/// <param name="users"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		Task<IList<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
+		Task<IEnumerable<IApiResponse<T>>> RequestBatch<T>(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
 
-		ApiRequest GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
+		IEnumerable<IApiRequest> GetRequest(string path, OperationType type, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
 	}
 }

@@ -14,14 +14,17 @@ namespace EveOpenApi.Api
 
 		public string User { get; }
 
+		public string Scope { get; }
+
 		public IDictionary<string, string> Headers { get; }
 
 		public HttpMethod HttpMethod { get; }
 
-		public ApiRequest(Uri requestUri, string user, IDictionary<string, string> headers, HttpMethod httpMethod)
+		public ApiRequest(Uri requestUri, string user, string scope, IDictionary<string, string> headers, HttpMethod httpMethod)
 		{
 			this.RequestUri = requestUri;
 			this.User = user;
+			this.Scope = scope;
 			this.Headers = headers;
 			this.HttpMethod = httpMethod;
 		}
