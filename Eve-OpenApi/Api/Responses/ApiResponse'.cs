@@ -10,7 +10,7 @@ namespace EveOpenApi.Api
 {
 	public class ApiResponse<T> : IApiResponse<T>
 	{
-		public new T FirstPage { get; }
+		public T FirstPage { get; }
 
 		public int MaxPages { get; }
 

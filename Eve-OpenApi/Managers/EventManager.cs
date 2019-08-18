@@ -5,6 +5,7 @@ using EveOpenApi.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -50,18 +51,18 @@ namespace EveOpenApi.Managers
 		/// <param name="parameters"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		public IApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
+		public IEnumerable<IApiRequest> GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation)
 		{
 			if (!Config.EnableEventQueue)
 				throw new Exception("Events has been disabled. Enable them via the 'EnableEventQueue' property in the config.");
 
-			IApiRequest request = requestManager.GetRequest(path, type, parameters, users, operation);
-			requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
-
-			for (int i = 0; i < request.Parameters.MaxLength; i++)
+			IEnumerable<IApiRequest> requests = requestManager.GetRequest(path, type, parameters, users, operation);
+			foreach (IApiRequest request in requests)
 			{
-				if (!Events.ContainsKey((request.GetHashCode(i), eventType)))
-					Events.Add((request.GetHashCode(i), eventType), null);
+				this.requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
+
+				if (!Events.ContainsKey((requests.GetHashCode(), eventType)))
+					Events.Add((requests.GetHashCode(), eventType), null);
 			}
 
 			if (trigger.CurrentCount == 0)
@@ -70,7 +71,7 @@ namespace EveOpenApi.Managers
 			if (!backroundRunning)
 				StartBackgroundLoop();
 
-			return request;
+			return requests;
 		}
 
 		/// <summary>
@@ -122,39 +123,26 @@ namespace EveOpenApi.Managers
 		}
 
 		/// <summary>
-		/// Process all paths in a request
-		/// </summary>
-		/// <param name="request"></param>
-		/// <returns></returns>
-		async Task ProcessRequest(IApiRequest request)
-		{
-			DateTime expired = default;
-			for (int i = 0; i < request.Parameters.MaxLength; i++)
-				expired = await ProcessRequest(request, i);
-
-			requests.Add(expired, request);
-		}
-
-		/// <summary>
 		/// Check if a request path data has changed.
 		/// </summary>
 		/// <param name="request"></param>
 		/// <param name="index"></param>
 		/// <returns></returns>
-		async Task<DateTime> ProcessRequest(IApiRequest request, int index)
+		async Task ProcessRequest(IApiRequest request)
 		{
-			cacheManager.TryHitCache(request, index, false, out IApiResponse old);
-			IApiResponse now = await cacheManager.GetResponse(request, index);
+			cacheManager.TryHitCache(request, false, out IApiResponse old);
+			IApiResponse now = await cacheManager.GetResponse(request);
 
 			if (now is ApiError)
 				throw new Exception(now.FirstPage);
 
-			TryInvokeEvent(EventType.Update, request.GetHashCode(index), now, old);
+			TryInvokeEvent(EventType.Update, request.GetHashCode(), now, old);
 
 			if (old != null && now.GetHashCode() != old?.GetHashCode())
-				TryInvokeEvent(EventType.Change, request.GetHashCode(index), now, old);
+				TryInvokeEvent(EventType.Change, request.GetHashCode(), now, old);
 
-			return now.Expired;
+			requests.Add(now.Expired, request);
+			//return now.Expired;
 		}
 
 		void TryInvokeEvent(EventType eventType, int id, IApiResponse now, IApiResponse old)

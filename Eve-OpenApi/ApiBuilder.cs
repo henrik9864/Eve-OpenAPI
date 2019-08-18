@@ -65,10 +65,12 @@ namespace EveOpenApi
 
 			OpenApiDocument spec = SpecFromUrl(config.SpecURL);
 
+			IFactory<IApiRequest> apiRequestFactory = new ApiRequestFactory();
+
 			ITokenManager tokenManager = new TokenManager(client, config, login);
 			IResponseManager responseManager = new ResponseManager(client,config, login);
 			ICacheManager cacheManager = new CacheManager(client, config, login, memoryCache, tokenManager, responseManager);
-			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager, spec);
+			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager, apiRequestFactory, spec);
 			IEventManager eventManager = new EventManager(client, config, login, cacheManager, requestManager);
 
 			IFactory<IApiPath> pathFacotry = new ApiPathFactory(requestManager);

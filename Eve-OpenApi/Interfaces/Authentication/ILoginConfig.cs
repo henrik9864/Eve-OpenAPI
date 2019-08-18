@@ -28,5 +28,7 @@
 		string RateLimitRemainHeader { get; }
 
 		string RateLimitResetHeader { get; }
+
+		string PageHeader { get; }
 	}
 }

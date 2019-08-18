@@ -89,7 +89,7 @@ namespace EveOpenApi.Managers
 
 		async Task CheckRateLimit(HttpResponseMessage response)
 		{
-			string errorRemainString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitHeader);
+			string errorRemainString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitRemainHeader);
 			string errorResetString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitResetHeader);
 
 			int.TryParse(errorRemainString, out errorRemain);
@@ -99,6 +99,7 @@ namespace EveOpenApi.Managers
 			// Throttle requests if users send too many errors.
 			if (errorRemain <= 0 && errorReset > DateTime.Now)
 			{
+				Console.WriteLine((errorReset - DateTime.Now).Seconds);
 				if (Config.RateLimitThrotle)
 					await Task.Delay(errorReset - DateTime.Now);
 				else
@@ -108,7 +109,7 @@ namespace EveOpenApi.Managers
 
 		int GetPages(HttpResponseMessage response)
 		{
-			string pageString = TryGetHeaderValue(response.Content.Headers, "x-pages");
+			string pageString = TryGetHeaderValue(response.Headers, Login.Config.PageHeader);
 			return int.Parse(pageString);
 		}
 

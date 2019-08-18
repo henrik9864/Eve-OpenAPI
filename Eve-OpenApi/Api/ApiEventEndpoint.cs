@@ -3,6 +3,7 @@ using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -38,17 +39,21 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				IApiRequest request = GetRequest(EventType.Change);
+				IEnumerable<IApiRequest> requests = GetRequest(EventType.Change);
+				foreach (IApiRequest request in requests)
+					eventManager.Events[(request.GetHashCode(), EventType.Change)] = eventManager.Events[(request.GetHashCode(), EventType.Change)] + value;
 
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					eventManager.Events[(request.GetHashCode(i), EventType.Change)] = eventManager.Events[(request.GetHashCode(i), EventType.Change)] + value;
+				//for (int i = 0; i < request.Parameters.MaxLength; i++)
+				//eventManager.Events[(request.GetHashCode(), EventType.Change)] = eventManager.Events[(request.GetHashCode(), EventType.Change)] + value;
 			}
 			remove
 			{
-				IApiRequest request = GetRequest(EventType.Change);
+				IEnumerable<IApiRequest> requests = GetRequest(EventType.Change);
+				foreach (IApiRequest request in requests)
+					eventManager.Events[(request.GetHashCode(), EventType.Change)] = eventManager.Events[(request.GetHashCode(), EventType.Change)] - value;
 
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					eventManager.Events[(request.GetHashCode(i), EventType.Change)] = eventManager.Events[(request.GetHashCode(i), EventType.Change)] - value;
+				//for (int i = 0; i < request.Parameters.MaxLength; i++)
+				//eventManager.Events[(request.GetHashCode(), EventType.Change)] = eventManager.Events[(request.GetHashCode(), EventType.Change)] - value;
 			}
 		}
 
@@ -59,21 +64,25 @@ namespace EveOpenApi.Api
 		{
 			add
 			{
-				IApiRequest request = GetRequest(EventType.Update);
+				IEnumerable<IApiRequest> requests = GetRequest(EventType.Update);
+				foreach (IApiRequest request in requests)
+					eventManager.Events[(request.GetHashCode(), EventType.Update)] = eventManager.Events[(request.GetHashCode(), EventType.Update)] + value;
 
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					eventManager.Events[(request.GetHashCode(i), EventType.Update)] = eventManager.Events[(request.GetHashCode(i), EventType.Update)] + value;
+				//for (int i = 0; i < request.Parameters.MaxLength; i++)
+				//eventManager.Events[(request.GetHashCode(), EventType.Update)] = eventManager.Events[(request.GetHashCode(), EventType.Update)] + value;
 			}
 			remove
 			{
-				IApiRequest request = GetRequest(EventType.Update);
+				IEnumerable<IApiRequest> requests = GetRequest(EventType.Update);
+				foreach (IApiRequest request in requests)
+					eventManager.Events[(request.GetHashCode(), EventType.Update)] = eventManager.Events[(request.GetHashCode(), EventType.Update)] - value;
 
-				for (int i = 0; i < request.Parameters.MaxLength; i++)
-					eventManager.Events[(request.GetHashCode(i), EventType.Update)] = eventManager.Events[(request.GetHashCode(i), EventType.Update)] - value;
+				//for (int i = 0; i < request.Parameters.MaxLength; i++)
+				//eventManager.Events[(request.GetHashCode(), EventType.Update)] = eventManager.Events[(request.GetHashCode(), EventType.Update)] - value;
 			}
 		}
 
-		IApiRequest GetRequest(EventType type)
+		IEnumerable<IApiRequest> GetRequest(EventType type)
 		{
 			return eventManager.GetRequest(Operation, type, Path, Parameters, Users, GetOperation(Operation));
 		}

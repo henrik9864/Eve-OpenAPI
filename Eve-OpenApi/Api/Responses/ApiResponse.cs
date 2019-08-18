@@ -42,6 +42,7 @@ namespace EveOpenApi.Api
 			CacheControl = new CacheControl(cacheControl);
 			cacheControlString = cacheControl;
 			FirstPage = response.FirstOrDefault();
+			this.response = response;
 		}
 
 		public override int GetHashCode()

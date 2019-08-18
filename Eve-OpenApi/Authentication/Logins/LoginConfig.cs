@@ -18,11 +18,14 @@ namespace EveOpenApi.Authentication
 
 		public string TokenName { get; set; }
 
+
 		public string RateLimitHeader { get; set; }
 
 		public string RateLimitRemainHeader { get; set; }
 
 		public string RateLimitResetHeader { get; set; }
+
+		public string PageHeader { get; set; }
 
 		public static LoginConfig Eve
 		{
@@ -37,8 +40,9 @@ namespace EveOpenApi.Authentication
 
 					TokenLocation = "query",
 					TokenName = "token",
-					RateLimitRemainHeader = "x-esi-error-limit-remain",
-					RateLimitResetHeader = "x-esi-error-limit-reset"
+					RateLimitRemainHeader = "X-Esi-Error-Limit-Remain",
+					RateLimitResetHeader = "X-Esi-Error-Limit-Reset",
+					PageHeader = "X-Pages"
 				};
 			}
 		}
