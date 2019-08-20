@@ -63,7 +63,7 @@ namespace EveOpenApi
 			IHttpHandler client = new HttpHandler();
 			IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions()
 			{
-				SizeLimit = 128 // Each ApiRequest is one in size
+				SizeLimit = 128, // Each ApiRequest is one in size
 			});
 
 			OpenApiDocument spec = SpecFromUrl(config.SpecURL);

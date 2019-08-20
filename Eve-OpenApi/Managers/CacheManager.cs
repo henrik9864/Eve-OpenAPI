@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
@@ -23,8 +24,6 @@ namespace EveOpenApi.Managers
 
 		public CacheManager(IHttpHandler client, IApiConfig config, ILogin login, IMemoryCache memoryCache, ITokenManager tokenManager, IResponseManager responseManager) : base(client, login, config)
 		{
-			Console.WriteLine("Test?");
-
 			requestQueue = new RequestQueueAsync<IApiRequest, IApiResponse>(ProcessResponse);
 			cache = memoryCache;
 			this.tokenManager = tokenManager;
@@ -117,20 +116,13 @@ namespace EveOpenApi.Managers
 			var entryOptions = new MemoryCacheEntryOptions()
 			{
 				Size = 1,
-				AbsoluteExpiration = response.Expired
+				// Add one minute so event manager has time to pull old request before it is removed
+				AbsoluteExpiration = response.Expired + new TimeSpan(0, 1, 0)
 			};
-
-			var reg = new PostEvictionCallbackRegistration();
-			reg.EvictionCallback += Test;
-			entryOptions.PostEvictionCallbacks.Add(reg);
 
 			cache.Set(request.GetHashCode(), response, entryOptions);
 		}
 
-		void Test(object key, object value, EvictionReason reason, object state)
-		{
-			Console.WriteLine($"{key} was removed with value {value} because {reason} with state {state}");
-		}
 
 		/// <summary>
 		/// Tries to retrive an eTag from a response.
@@ -150,20 +142,6 @@ namespace EveOpenApi.Managers
 			eTag = "";
 			return false;
 		}
-
-		/// <summary>
-		/// Execute EsiRequest.
-		/// </summary>
-		/// <param name="request"></param>
-		/// <returns></returns>
-		/*async Task<IApiResponse> ProcessResponse(IApiRequest request)
-		{
-			IList<IApiResponse> esiResponses = new List<IApiResponse>();
-			for (int i = 0; i < request.Parameters.MaxLength; i++)
-				esiResponses.Add(await ProcessResponse(request, i));
-
-			return esiResponses;
-		}*/
 
 		async Task<IApiResponse> ProcessResponse(IApiRequest request)
 		{

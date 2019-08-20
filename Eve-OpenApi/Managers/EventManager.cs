@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -23,7 +24,7 @@ namespace EveOpenApi.Managers
 	{
 		public Dictionary<(int, EventType), ApiUpdate> Events { get; }
 
-		SortedList<DateTime, IApiRequest> requests;
+		SortedSet<(DateTime time, IApiRequest request)> requests;
 		SemaphoreSlim trigger;
 
 		bool backroundRunning = false;
@@ -35,7 +36,7 @@ namespace EveOpenApi.Managers
 		{
 			Events = new Dictionary<(int, EventType), ApiUpdate>();
 
-			requests = new SortedList<DateTime, IApiRequest>();
+			requests = new SortedSet<(DateTime, IApiRequest)>(new ApiRequestComparer());
 			trigger = new SemaphoreSlim(0, 1);
 
 			this.cacheManager = cacheManager;
@@ -59,10 +60,10 @@ namespace EveOpenApi.Managers
 			IEnumerable<IApiRequest> requests = requestManager.GetRequest(path, type, parameters, users, operation);
 			foreach (IApiRequest request in requests)
 			{
-				this.requests.Add(DateTime.UtcNow + new TimeSpan(0, 0, 1), request);
+				this.requests.Add((DateTime.Now + new TimeSpan(0, 0, 1), request));
 
-				if (!Events.ContainsKey((requests.GetHashCode(), eventType)))
-					Events.Add((requests.GetHashCode(), eventType), null);
+				if (!Events.ContainsKey((request.GetHashCode(), eventType)))
+					Events.Add((request.GetHashCode(), eventType), null);
 			}
 
 			if (trigger.CurrentCount == 0)
@@ -75,7 +76,7 @@ namespace EveOpenApi.Managers
 		}
 
 		/// <summary>
-		/// Star background event loop and setup event handling.
+		/// Start background event loop and setup event handling.
 		/// </summary>
 		void StartBackgroundLoop()
 		{
@@ -101,20 +102,20 @@ namespace EveOpenApi.Managers
 
 			while (true)
 			{
-				KeyValuePair<DateTime, IApiRequest> request = requests.FirstOrDefault();
+				(DateTime time, IApiRequest request) = requests.FirstOrDefault();
 				Task waitTask = Task.Delay(-1);
 
-				if (request.Value != default && request.Key.CompareTo(DateTime.UtcNow) != -1)
-					waitTask = Task.Delay(request.Key - DateTime.UtcNow + new TimeSpan(0, 0, 1));
-				else if (request.Value != default)
+				if (request != default && time.CompareTo(DateTime.Now) != -1)
+					waitTask = Task.Delay(time - DateTime.Now + new TimeSpan(0, 0, 1));
+				else if (request != default)
 					waitTask = Task.Delay(1000);
 
 				await Task.WhenAny(semaphore, waitTask);
 
 				if (waitTask.IsCompleted)
 				{
-					requests.Remove(request.Key);
-					await ProcessRequest(request.Value);
+					int index = requests.RemoveWhere(x => x.time == time);
+					await ProcessRequest(request);
 				}
 
 				if (semaphore.IsCompleted)
@@ -141,7 +142,7 @@ namespace EveOpenApi.Managers
 			if (old != null && now.GetHashCode() != old?.GetHashCode())
 				TryInvokeEvent(EventType.Change, request.GetHashCode(), now, old);
 
-			requests.Add(now.Expired, request);
+			requests.Add((now.Expired, request));
 			//return now.Expired;
 		}
 
@@ -151,6 +152,17 @@ namespace EveOpenApi.Managers
 				return;
 
 			apiUpdate(now, old);
+		}
+	}
+
+	/// <summary>
+	/// Not the pretties but it works
+	/// </summary>
+	class ApiRequestComparer : IComparer<(DateTime time, IApiRequest request)>
+	{
+		public int Compare([AllowNull] (DateTime time, IApiRequest request) x, [AllowNull] (DateTime time, IApiRequest request) y)
+		{
+			return x.time.CompareTo(y.time);
 		}
 	}
 }
