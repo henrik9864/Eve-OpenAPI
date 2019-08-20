@@ -20,6 +20,8 @@ namespace EveOpenApi.Api
 
 		public HttpMethod HttpMethod { get; }
 
+		int computedHashCode;
+
 		public ApiRequest(Uri requestUri, string user, string scope, IDictionary<string, string> headers, HttpMethod httpMethod)
 		{
 			this.RequestUri = requestUri;
@@ -27,9 +29,16 @@ namespace EveOpenApi.Api
 			this.Scope = scope;
 			this.Headers = headers;
 			this.HttpMethod = httpMethod;
+
+			computedHashCode = ComputeHashCode();
 		}
 
 		public override int GetHashCode()
+		{
+			return computedHashCode;
+		}
+
+		int ComputeHashCode()
 		{
 			int hash = 17;
 			hash *= 23 + RequestUri.GetHashCode();

@@ -50,11 +50,12 @@ namespace EveOpenApi.Managers
 
 			// Get headers to use later
 			string eTag = TryGetHeaderValue(httpResponse.Headers, "etag");
-			string expireString = TryGetHeaderValue(httpResponse.Content.Headers, "expires");
+			string expireString = TryGetHeaderValue(httpResponse.Content.Headers, "Expires");
+			string nowString = TryGetHeaderValue(httpResponse.Headers, "Date");
 			string cacheControlString = TryGetHeaderValue(httpResponse.Content.Headers, "cache-control");
 
 			// Return an error if the request failed
-			DateTime expired = ParseDateTime(expireString);
+			DateTime expired = ParseDateTime(expireString, nowString);
 			if (!httpResponse.IsSuccessStatusCode)
 				return new ApiError(eTag, responseArr, expired, cacheControlString, httpResponse.StatusCode);
 
@@ -75,7 +76,7 @@ namespace EveOpenApi.Managers
 
 		async Task<string> GetPage(IApiRequest request, int page)
 		{
-			request.SetParameter("page", page.ToString());
+			request.SetParameter("page", (page + 1).ToString());
 
 			var httpResponse = await GetHttpRequest(request);
 			await CheckRateLimit(httpResponse);
@@ -110,6 +111,10 @@ namespace EveOpenApi.Managers
 		int GetPages(HttpResponseMessage response)
 		{
 			string pageString = TryGetHeaderValue(response.Headers, Login.Config.PageHeader);
+
+			if (string.IsNullOrEmpty(pageString))
+				return 1;
+
 			return int.Parse(pageString);
 		}
 
@@ -121,13 +126,15 @@ namespace EveOpenApi.Managers
 			return "";
 		}
 
-		DateTime ParseDateTime(string dateTime)
+		DateTime ParseDateTime(string dateTime, string nowString)
 		{
-			DateTime parsedExpiery = default;
-			if (!string.IsNullOrEmpty(dateTime))
-				parsedExpiery = DateTime.ParseExact(dateTime, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+			if (string.IsNullOrEmpty(dateTime) || string.IsNullOrEmpty(nowString))
+				return default;
 
-			return parsedExpiery;
+			DateTime parsedExpiery = DateTime.ParseExact(dateTime, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+			DateTime parsedDate = DateTime.ParseExact(nowString, "ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture);
+
+			return DateTime.Now + (parsedExpiery - parsedDate);
 		}
 	}
 }

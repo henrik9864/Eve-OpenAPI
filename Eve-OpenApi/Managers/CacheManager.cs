@@ -15,7 +15,7 @@ namespace EveOpenApi.Managers
 {
 	internal class CacheManager : BaseManager, ICacheManager
 	{
-		IMemoryCache cache;
+		private IMemoryCache cache { get; }
 		RequestQueueAsync<IApiRequest, IApiResponse> requestQueue;
 
 		ITokenManager tokenManager;
@@ -23,6 +23,8 @@ namespace EveOpenApi.Managers
 
 		public CacheManager(IHttpHandler client, IApiConfig config, ILogin login, IMemoryCache memoryCache, ITokenManager tokenManager, IResponseManager responseManager) : base(client, login, config)
 		{
+			Console.WriteLine("Test?");
+
 			requestQueue = new RequestQueueAsync<IApiRequest, IApiResponse>(ProcessResponse);
 			cache = memoryCache;
 			this.tokenManager = tokenManager;
@@ -102,7 +104,7 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		public bool TryHitCache(IApiRequest request, bool validateTime, out IApiResponse response)
 		{
-			return cache.TryGetValue(request.GetHashCode(), out response) && (!validateTime || DateTime.UtcNow < response.Expired);
+			return cache.TryGetValue(request.GetHashCode(), out response) && (!validateTime || DateTime.Now < response.Expired);
 		}
 
 		/// <summary>
@@ -112,7 +114,22 @@ namespace EveOpenApi.Managers
 		/// <param name="response"></param>
 		void SaveToCache(IApiRequest request, IApiResponse response)
 		{
-			cache.Set(request.GetHashCode(), response, response.Expired);
+			var entryOptions = new MemoryCacheEntryOptions()
+			{
+				Size = 1,
+				AbsoluteExpiration = response.Expired
+			};
+
+			var reg = new PostEvictionCallbackRegistration();
+			reg.EvictionCallback += Test;
+			entryOptions.PostEvictionCallbacks.Add(reg);
+
+			cache.Set(request.GetHashCode(), response, entryOptions);
+		}
+
+		void Test(object key, object value, EvictionReason reason, object state)
+		{
+			Console.WriteLine($"{key} was removed with value {value} because {reason} with state {state}");
 		}
 
 		/// <summary>

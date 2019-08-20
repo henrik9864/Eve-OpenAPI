@@ -21,12 +21,12 @@ namespace EveOpenApi
 		IFactory<IApiPath> pathFacotry;
 		IFactory<IApiEventPath> eventPathFacotry;
 
-		internal API(ILogin login, IApiConfig config, IFactory<IApiPath> pathFacotry, IFactory<IApiEventPath> eventPathFacotry)
+		internal API(ILogin login, IApiConfig config, IFactory<IApiPath> pathFacotry, OpenApiDocument spec, IFactory<IApiEventPath> eventPathFacotry)
 		{
 			Login = login;
 			this.pathFacotry = pathFacotry;
 			this.eventPathFacotry = eventPathFacotry;
-			Spec = SpecFromUrl(config.SpecURL);
+			Spec = spec;
 			Config = config;
 			DefaultUser = Config.DefaultUser;
 		}
@@ -53,17 +53,6 @@ namespace EveOpenApi
 				return eventPathFacotry.Create(path, DefaultUser, pathItem);//new ApiEventPath(this, path, DefaultUser, pathItem);
 			else
 				throw new Exception($"The spec does not contain path '{path}'");
-		}
-
-		static OpenApiDocument SpecFromUrl(string specUrl)
-		{
-			string specString;
-			using (WebClient webClient = new WebClient())
-			{
-				specString = webClient.DownloadString(specUrl);
-			}
-
-			return new OpenApiStringReader().Read(specString, out OpenApiDiagnostic diagnostic);
 		}
 
 		#region Static methods

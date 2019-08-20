@@ -61,7 +61,10 @@ namespace EveOpenApi
 				throw new Exception("Configuration cannot be null");
 
 			IHttpHandler client = new HttpHandler();
-			IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+			IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions()
+			{
+				SizeLimit = 128 // Each ApiRequest is one in size
+			});
 
 			OpenApiDocument spec = SpecFromUrl(config.SpecURL);
 
@@ -77,7 +80,7 @@ namespace EveOpenApi
 			IFactory<IApiEventMethod> eventMethodFactory = new ApiEventMethodFactory(eventManager);
 			IFactory<IApiEventPath> eventPathFactory = new ApiEventPathFactory(eventMethodFactory);
 
-			return new API(login, config, pathFacotry, eventPathFactory);
+			return new API(login, config, pathFacotry, spec, eventPathFactory);
 		}
 
 		OpenApiDocument SpecFromUrl(string specUrl)
