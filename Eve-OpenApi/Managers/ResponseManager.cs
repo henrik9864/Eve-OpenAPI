@@ -90,8 +90,8 @@ namespace EveOpenApi.Managers
 
 		async Task CheckRateLimit(HttpResponseMessage response)
 		{
-			string errorRemainString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitRemainHeader);
-			string errorResetString = TryGetHeaderValue(response.Headers, Login.Config.RateLimitResetHeader);
+			string errorRemainString = TryGetHeaderValue(response.Headers, Config.RateLimitRemainHeader);
+			string errorResetString = TryGetHeaderValue(response.Headers, Config.RateLimitResetHeader);
 
 			int.TryParse(errorRemainString, out errorRemain);
 			int.TryParse(errorResetString, out int errorResetTime);
@@ -110,7 +110,7 @@ namespace EveOpenApi.Managers
 
 		int GetPages(HttpResponseMessage response)
 		{
-			string pageString = TryGetHeaderValue(response.Headers, Login.Config.PageHeader);
+			string pageString = TryGetHeaderValue(response.Headers, Config.PageHeader);
 
 			if (string.IsNullOrEmpty(pageString))
 				return 1;

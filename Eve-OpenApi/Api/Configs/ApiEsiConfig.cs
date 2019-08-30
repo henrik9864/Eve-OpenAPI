@@ -21,5 +21,45 @@ namespace EveOpenApi.Api.Configs
 				return $"{BaseUrl}{Version}/swagger.json?datasource={Datasource}".ToLower();
 			}
 		}
+
+		public override string TokenLocation
+		{
+			get
+			{
+				return "query";
+			}
+		}
+
+		public override string TokenName
+		{
+			get
+			{
+				return "token";
+			}
+		}
+
+		public override string RateLimitRemainHeader
+		{
+			get
+			{
+				return "X-Esi-Error-Limit-Remain";
+			}
+		}
+
+		public override string RateLimitResetHeader
+		{
+			get
+			{
+				return "X-Esi-Error-Limit-Reset";
+			}
+		}
+
+		public override string PageHeader
+		{
+			get
+			{
+				return "X-Pages";
+			}
+		}
 	}
 }

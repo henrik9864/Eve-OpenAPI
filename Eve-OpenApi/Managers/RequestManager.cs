@@ -119,7 +119,7 @@ namespace EveOpenApi.Managers
 							break;
 					}
 				}
-				else if (item.Required && Login?.Config.TokenLocation != "query" && Login?.Config.TokenName == item.Name)
+				else if (item.Required && Config.TokenLocation != "query" && Config.TokenName == item.Name)
 					throw new Exception($"Required parameter '{item.Name}' not supplied.");
 			}
 
