@@ -103,15 +103,58 @@ This example is shown using ESI but the interface works the same way for all API
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
 IApiPath path = api.Path("/characters/{character_id}/mail/");
-IApiResponse response = await api.Get("Character Name", ("character_id", "character id"));
+IApiResponse response = await api.Get(("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-IApiResponse<T> response = await api.Get<T>("Character Name", ("character_id", "character id"));
+// You can also set a other user to ovveride DefaultUser
+IApiResponse<T> response = await api.SetUsers("Character ID").Get<T>(("character_id", "character id"));
 
 // If you want to do a batch request to for multiple values use GetBatch
-List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<IApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+// This also works with characters
+List<object> CharacterIDs = new List<object>() {"character id", "character id"};
+List<string> EveCharacterIDs = new List<string>() {"Character ID", "Character ID"};
+Lis<IApiResponse<T>> response = await path.SetUsers(EveCharacterIDs).GetBatch<T>(("character_id", CharacterIDs));
 ```
+
+### Interacting with the data
+```cs
+// First you must select a path, this path will be validated to make sure you are using the right EsiVersion
+IApiPath path = api.Path("/characters/{character_id}/mail/");
+IApiResponse response = await path.Get(("character_id", "character id");
+
+// If you response does not have any pagination or you only want the first page
+response.FirstPage
+
+// IApiResponse extends IEnumerable so can access each page by enumerating over the response.
+foreach (string page in response) // page type deafults to string and will be the same as T
+{
+
+}
+
+// If you want to flatten the pages into one item you can use System.Linq
+response.Aggregate((a, b) => a + b);
+```
+
+### Listening for events
+This library currrently comes with two events OnChange and OnExpire.
+```cs
+IApiEventMethod method = api.PathEvent("/characters/{character_id}/location/").Get(("character_id", 96037287));
+method.OnChange += Change; // Called each time the value for this endpoint changes between each expire
+method.OnExpire += Update; // Called each time the data from this enpoint becomes stale
+
+void Update(IApiResponse a1, IApiResponse a2)
+{
+  Console.WriteLine("Updated location!");
+}
+
+void Change(IApiResponse a1, IApiResponse a2)
+{
+  Console.WriteLine("	Changed location!");
+  Console.WriteLine($"	{a1.FirstPage}");
+  Console.WriteLine($"	{a2.FirstPage}");
+}
+```
+
 ---
 
 EVE Online © 2019 [CCP hf.](https://www.ccpgames.com/)
