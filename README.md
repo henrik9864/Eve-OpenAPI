@@ -24,8 +24,6 @@ ILogin login = await new LoginBuilder()
   .WithCredentials(ClientID, Callback)
   .BuildEve();
 ```
-<br />
-
 #### Custom oauth login.
 If you need a custom login for your api you can customize it with a ILoginConfig
 ```cs
@@ -37,15 +35,12 @@ ILogin login = await new LoginBuilder(Config)
   .WithCredentials(ClientID, Callback)
   .BuildOAuth();
 ```
-<br />
-
 #### Adding tokens.
 If you want the library to open the url for you do this.
 ```cs
 IScope Scope = (Scope)"<esi scope>";
 await login.AddToken(Scope);
 ```
-
 If you want a custom way to give users the auth url. This method will setup a web listener in the background to handle the response.
 ```cs
 IScope Scope = (Scope)"<esi scope>";
@@ -53,7 +48,6 @@ string url = await login.GetAuthUrl(Scope);
 
 // Do stuff with url
 ```
-
 #### Saving and loading tokens.
 ```cs
 string ClientID = "your eve developer client id";
@@ -69,7 +63,6 @@ ILogin login = await new LoginBuilder()
 login.SaveToFile(SaveFile, true);
 ```
 ## Setup API
-
 #### Creating API config
 To have the API pull from ESI you have to setup its config to do so. This is also where you supply your user agent and feault user. The library will not work without the user agent being set.
 ```cs
@@ -78,7 +71,6 @@ IApiConfig config = new EsiConfig()
   UserAgent = "Your cool user agent",
 };
 ```
-
 If you want to pull from an OpenAPI with no preset included you can create your own custom api config.
 ```cs
 IApiConfig config = new ApiConfig()
@@ -89,13 +81,11 @@ IApiConfig config = new ApiConfig()
   TokenName = "Name of the token parameter"
 };
 ```
-
 #### Build the API
 Once you have created the config you can now build the api. The login can be omitted if you dont need it.
 ```cs
 IAPI api = new ApiBuilder(config, login).Build();
 ```
-
 ## Get data from the API
 This example is shown using ESI but the interface works the same way for all API's.
 ```cs
@@ -113,7 +103,6 @@ List<object> CharacterIDs = new List<object>() {"character id", "character id"};
 List<string> EveCharacterIDs = new List<string>() {"Character ID", "Character ID"};
 Lis<IApiResponse<T>> response = await path.SetUsers(EveCharacterIDs).GetBatch<T>(("character_id", CharacterIDs));
 ```
-
 ### Interacting with the data
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
@@ -132,7 +121,6 @@ foreach (string page in response) // page type deafults to string and will be th
 // If you want to flatten the pages into one item you can use System.Linq
 response.Aggregate((a, b) => a + b);
 ```
-
 ### Listening for events
 This library currrently comes with two events OnChange and OnExpire.
 ```cs
@@ -152,7 +140,6 @@ void Change(IApiResponse a1, IApiResponse a2)
   Console.WriteLine($"	{a2.FirstPage}");
 }
 ```
-
 ---
 
 EVE Online © 2019 [CCP hf.](https://www.ccpgames.com/)
