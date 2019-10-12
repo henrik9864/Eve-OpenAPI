@@ -6,63 +6,70 @@ A library for accessing EVE online's ESI api.
 ### Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.3.5
+Install-Package Eve-OpenApi -Version 0.4.0
 ```
 Get AspNet core support: https://www.nuget.org/packages/Eve-OpenApi.DpendencyInjection/ <br />
 ```
-Install-Package Eve-OpenApi.DpendencyInjection -Version 0.3.5
+Install-Package Eve-OpenApi.DpendencyInjection -Version 0.4.0
 ```
 
 ### Example
 
-#### Create a EveLogin
+Eve-OpenAPI does not require a login for it to work on endpoints that does not require a scope so this step is optional dont plan on using any. For programs you plan on distributing Eve-OpenAPI does not require a client secret. Read more at https://github.com/esi/esi-docs.
 
-Eve-OpenAPI does not require a client secret as it uses the new v2 authorization. It will autmaticly generate a code challenge and a verifier. Read more at https://github.com/esi/esi-docs.
+#### Standard eve login.
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
-string Scope = "esi scopes separated by a space";
 
-EveLogin login = await EveLogin.Login(Scope, ClientID, Callback);
+ILogin login = await new LoginBuilder()
+  .WithCredentials(ClientID, Callback)
+  .BuildEve();
 ```
 <br />
 
-If you need alternative ways to give the user the auth URL, for example on servers.
+#### Custom oauth login.
+If you need a custom login for your api you can customize it with a ILoginConfig
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
-string Scope = "esi scopes separated by a space";
+ILoginConfig Config = new LoginConfig();
 
-EveLogin login = await EveLogin.Create(ClientID, Callback);
-string AuthUrl = await login.Authenticate(Scope);
-
-// Do whatever you want withe URL, here i open it in the browser
-OpenUrl(AuthUrl);
+ILogin login = await new LoginBuilder(Config)
+  .WithCredentials(ClientID, Callback)
+  .BuildOAuth();
 ```
 <br />
 
-Or alternativly if you want to load from a save file.
+#### Adding tokens.
+If you want the library to open the url for you do this.
 ```cs
-string FilePath = "path to your save file";
-
-ILogin login = await EveLogin.FromFile(FilePath);
-```
-#### Save EveLogin
-There is two ways to save a EveLogin. The SaveToFile method automaticly writes it to a file, if you want more control you can use the ToJson method.
-
-```cs
-// Let EveLogin handle file manipulation
-string FilePath = "path to your save file";
-
-// Do it yourself
-string json = await login.ToJson(FilePath);
-```
-#### Create a SeatLogin
-```cs
-// SeAT code must be obtained by your seat administrator and must be specific for your IP.
-ILogin login = new SeatLogin("Your SeAT key here");
+IScope Scope = (Scope)"<esi scope>";
+await login.AddToken(Scope);
 ```
 
+If you want a custom way to give users the auth url. This method will setup a web listener in the background to handle the response.
+```cs
+IScope Scope = (Scope)"<esi scope>";
+string url = await login.GetAuthUrl(Scope);
+
+// Do stuff with url
+```
+
+#### Saving and loading tokens.
+```cs
+string ClientID = "your eve developer client id";
+string Callback = "client callback url";
+string SaveFile = "Path to savefile"
+
+ILogin login = await new LoginBuilder()
+  .WithCredentials(ClientID, Callback)
+  .FromFile(Savefile)
+  .BuildEve();
+
+// Will save and encrypted file with a refresh token for all added tokens.
+login.SaveToFile(SaveFile, true);
+```
 #### Setup ESI specific API
 It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
 ```cs
