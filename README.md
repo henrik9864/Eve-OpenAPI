@@ -13,7 +13,7 @@ Get AspNet core support: https://www.nuget.org/packages/Eve-OpenApi.DpendencyInj
 Install-Package Eve-OpenApi.DpendencyInjection -Version 0.4.0
 ```
 
-### Example
+### Setup Login
 
 Eve-OpenAPI does not require a login for it to work on endpoints that does not require a scope so this step is optional dont plan on using any. For programs you plan on distributing Eve-OpenAPI does not require a client secret. Read more at https://github.com/esi/esi-docs.
 
@@ -70,42 +70,47 @@ ILogin login = await new LoginBuilder()
 // Will save and encrypted file with a refresh token for all added tokens.
 login.SaveToFile(SaveFile, true);
 ```
-#### Setup ESI specific API
-It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
+### Setup API
+
+#### Creating API config
+To have the API pull from ESI you have to setup its config to do so. This is also where you supply your user agent and feault user. The library will not work without the user agent being set.
 ```cs
-ApiConfig config = new ApiConfig {
-  UserAgent = "Your user agent",
+IApiConfig config = new EsiConfig()
+{
+  UserAgent = "Your cool user agent",
 };
-
-// When you create the ESI interface you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
-API api = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
 ```
-#### Setup API
+
+If you want to pull from an OpenAPI with no preset included you can create your own custom api config.
 ```cs
-ApiConfig config = new ApiConfig {
-  UserAgent = "Your user agent",
+IApiConfig config = new ApiConfig()
+{
+  UserAgent = "Your cool user agent",
+  SpecURL = "Link to the swagger spec v2 or v3",
+  TokenLocation = "Where your oauth token are put", // This can be one of two values header or query
+  TokenName = "Name of the token parameter"
 };
-
-// Connect the API interface to an arbitrary api.
-API api = API.Create("Specification URL", config: config);
-
-// If the API require authentication you can pass in the login as the second argument, like for example ESI or SeAT.
-API api = API.Create("Specification URL", login, config: config);
 ```
-#### Retrive data from API interface
+
+#### Build the API
+Once you have created the config you can now build the api. The login can be omitted if you dont need it.
+```cs
+IAPI api = new ApiBuilder(config, login).Build();
+```
+
+### Retrive data from the API
 This example is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
-ApiPath path = esi.Path("/characters/{character_id}/mail/");
-
-ApiResponse response = await path.Get("Character Name", ("character_id", "character id"));
+IApiPath path = api.Path("/characters/{character_id}/mail/");
+IApiResponse response = await api.Get("Character Name", ("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-ApiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
+IApiResponse<T> response = await api.Get<T>("Character Name", ("character_id", "character id"));
 
-// If you want to do a batch request to for multiple characters use GetBatch
+// If you want to do a batch request to for multiple values use GetBatch
 List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<ApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+Lis<IApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
 ```
 ---
 
