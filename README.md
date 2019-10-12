@@ -1,9 +1,7 @@
 # Eve-OpenAPI
 A library for accessing EVE online's ESI api.
 
-## Getting Started
-
-### Installation
+## Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
 Install-Package Eve-OpenApi -Version 0.4.0
@@ -13,7 +11,7 @@ Get AspNet core support: https://www.nuget.org/packages/Eve-OpenApi.DpendencyInj
 Install-Package Eve-OpenApi.DpendencyInjection -Version 0.4.0
 ```
 
-### Setup Login
+## Setup Login
 
 Eve-OpenAPI does not require a login for it to work on endpoints that does not require a scope so this step is optional dont plan on using any. For programs you plan on distributing Eve-OpenAPI does not require a client secret. Read more at https://github.com/esi/esi-docs.
 
@@ -70,7 +68,7 @@ ILogin login = await new LoginBuilder()
 // Will save and encrypted file with a refresh token for all added tokens.
 login.SaveToFile(SaveFile, true);
 ```
-### Setup API
+## Setup API
 
 #### Creating API config
 To have the API pull from ESI you have to setup its config to do so. This is also where you supply your user agent and feault user. The library will not work without the user agent being set.
@@ -98,7 +96,7 @@ Once you have created the config you can now build the api. The login can be omi
 IAPI api = new ApiBuilder(config, login).Build();
 ```
 
-### Retrive data from the API
+## Get data from the API
 This example is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
