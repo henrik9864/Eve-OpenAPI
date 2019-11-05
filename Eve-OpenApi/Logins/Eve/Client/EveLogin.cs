@@ -197,12 +197,17 @@ namespace EveOpenApi
 		/// <returns></returns>
 		public static async Task<EveLogin> FromFile(string filePath, HttpClient client = default)
 		{
-			(Dictionary<string, List<string>> eveLoginSave, string clientID, string callback) loaded;
 			using (StreamReader reader = new StreamReader(filePath))
 			{
 				string json = await reader.ReadToEndAsync();
-				loaded = JsonConvert.DeserializeObject<(Dictionary<string, List<string>>, string, string)>(json);
+				return await FromJson(json, client);
 			}
+		}
+
+		public static async Task<EveLogin> FromJson(string json, HttpClient client = default) 
+		{
+			(Dictionary<string, List<string>> eveLoginSave, string clientID, string callback) loaded;
+			loaded = JsonConvert.DeserializeObject<(Dictionary<string, List<string>>, string, string)>(json);
 
 			EveLogin login = new EveLogin(loaded.clientID, loaded.callback, client);
 			foreach (var user in loaded.eveLoginSave)
