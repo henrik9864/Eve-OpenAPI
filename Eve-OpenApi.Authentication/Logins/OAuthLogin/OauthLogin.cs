@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Authentication.Managers;
+﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,81 +10,33 @@ using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
 {
-	public class OauthLogin : ILogin
+	public class OauthLogin : IOauthLogin
 	{
-		public ILoginConfig Config { get; }
-
 		public ILoginCredentials Credentials { get; }
 
-		public IToken this[string user, string scope]
-		{
-			get
-			{
-				return GetToken(user, (Scope)scope);
-			}
-		}
+		public ILoginConfig Config { get; }
 
 		ITokenManager tokenManager;
 
-		Dictionary<string, List<IToken>> userTokens;
+		Dictionary<string, List<IOauthToken>> userTokens;
 
 		internal OauthLogin(ILoginConfig config, ILoginCredentials credentials, ITokenManager tokenManager)
 		{
-			Config = config;
 			Credentials = credentials;
+			Config = config;
 			this.tokenManager = tokenManager;
 
-			userTokens = new Dictionary<string, List<IToken>>();
+			userTokens = new Dictionary<string, List<IOauthToken>>();
 		}
 
-		public async Task<IToken> AddToken(IScope scope)
+		#region ILogin
+
+		public async Task<IToken> GetToken(string user, IScope scope)
 		{
-			var result = await tokenManager.GetToken(scope);
-			AddToken(result.owner, result.token);
+			IOauthToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 
-			return result.token;
-		}
-
-		public async Task<IToken> AddToken(string refreshToken, IScope scope)
-		{
-			var result = await tokenManager.RefreshToken(refreshToken, scope);
-			AddToken(result.owner, result.token);
-
-			return result.token;
-		}
-
-		public Task<IToken> RefreshToken(IToken token)
-		{
-			return AddToken(token.RefreshToken, token.Scope);
-		}
-
-		public async Task<string> GetAuthUrl(IScope scope)
-		{
-			var authUrl = tokenManager.GenerateAuthUrl(scope);
-
-			await Task.Factory.StartNew(async () =>
-			{
-				var response = await tokenManager.ListenForResponse(scope, authUrl);
-				AddToken(response.owner, response.token);
-			});
-
-			return authUrl.Url;
-		}
-
-		public bool TryGetToken(string user, IScope scope, out IToken token)
-		{
-			userTokens.TryGetValue(user, out List<IToken> tokens);
-
-			token = tokens?.Find(a => a.Scope.IsSubset(scope));
-			return token != null;
-		}
-
-		public IToken GetToken(string user, IScope scope)
-		{
-			IToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
-
-			if (token == null)
-				throw new Exception($"No token with scope '{scope}' found");
+			if (token?.Expires > DateTime.UtcNow)
+				token = await RefreshToken(token);
 
 			return token;
 		}
@@ -96,11 +49,11 @@ namespace EveOpenApi.Authentication
 
 		public IList<IToken> GetTokens(string user)
 		{
-			return userTokens[user];
+			return userTokens[user].ConvertAll<IToken>(x => x);
 		}
 
 		/// <summary>
-		/// Saves
+		/// Saves encrypted json to file
 		/// </summary>
 		/// <param name="path"></param>
 		/// <param name="override"></param>
@@ -120,7 +73,45 @@ namespace EveOpenApi.Authentication
 				.ToList()
 				.ConvertAll(a => new TokenSave(a.RefreshToken, a.Scope.ScopeString));
 
-			return JsonSerializer.Serialize(tokens);
+			return JsonSerializer.Serialize(("OAuth", tokens));
+		}
+
+		#endregion
+
+		#region OAuthLogin
+
+		public async Task<IOauthToken> AddToken(IScope scope)
+		{
+			var result = await tokenManager.GetToken(scope);
+			AddToken(result.owner, result.token);
+
+			return result.token;
+		}
+
+		public async Task<IOauthToken> AddToken(string refreshToken, IScope scope)
+		{
+			var result = await tokenManager.RefreshToken(refreshToken, scope);
+			AddToken(result.owner, result.token);
+
+			return result.token;
+		}
+
+		public Task<IOauthToken> RefreshToken(IOauthToken token)
+		{
+			return AddToken(token.RefreshToken, token.Scope);
+		}
+
+		public async Task<string> GetAuthUrl(IScope scope)
+		{
+			var authUrl = tokenManager.GenerateAuthUrl(scope);
+
+			await Task.Factory.StartNew(async () =>
+			{
+				var response = await tokenManager.ListenForResponse(scope, authUrl);
+				AddToken(response.owner, response.token);
+			});
+
+			return authUrl.Url;
 		}
 
 		public string ToEncrypted()
@@ -132,11 +123,13 @@ namespace EveOpenApi.Authentication
 			return StringCipher.Encrypt(json, passPhrase);
 		}
 
-		void AddToken(string owner, IToken token)
+		#endregion
+
+		void AddToken(string owner, IOauthToken token)
 		{
-			if (!userTokens.TryGetValue(owner, out List<IToken> tokens))
+			if (!userTokens.TryGetValue(owner, out List<IOauthToken> tokens))
 			{
-				tokens = new List<IToken>();
+				tokens = new List<IOauthToken>();
 				userTokens[owner] = tokens;
 			}
 

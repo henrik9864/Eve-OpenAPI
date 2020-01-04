@@ -1,7 +1,7 @@
 ﻿
 using EveOpenApi.Interfaces;
 
-namespace EveOpenApi.Authentication.Managers
+namespace EveOpenApi.Authentication
 {
 	internal struct AuthResponse : IAuthResponse
 	{

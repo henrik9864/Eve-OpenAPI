@@ -49,13 +49,12 @@ namespace EveOpenApi.Managers
 			if (string.IsNullOrEmpty(request.User))
 				throw new Exception("User cannot be null or empty, please set a default user.");
 
-			if (!Login.TryGetToken(request.User, (Scope)request.Scope, out IToken token))
+			IToken token = await Login.GetToken(request.User, (Scope)request.Scope);
+
+			if (token is null)
 				throw new Exception($"No token with scope '{request.Scope}'");
 
-			if (DateTime.UtcNow > token.Expires)
-				token = await Login.RefreshToken(token);
-
-			AddTokenLocation(request, token.AccessToken);
+			AddTokenLocation(request, token.GetToken());
 		}
 
 		/// <summary>

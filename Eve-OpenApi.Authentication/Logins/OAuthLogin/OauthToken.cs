@@ -1,11 +1,12 @@
-﻿using EveOpenApi.Authentication;
+﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace EveOpenApi.Authentication
 {
-	partial class Token : IToken
+	internal class OauthToken : IOauthToken
 	{
 		public string AccessToken { get; }
 
@@ -17,13 +18,18 @@ namespace EveOpenApi.Authentication
 
 		public string TokenType { get; }
 
-		public Token(OauthToken token, IScope scope)
+		public OauthToken(OauthTokenSave token, IScope scope)
 		{
 			AccessToken = token.AccessToken;
 			RefreshToken = token.RefreshToken;
 			Scope = scope;
 			Expires = DateTime.Now + new TimeSpan(0, 0, (int)token.Expires);
 			TokenType = token.TokenType;
+		}
+
+		public string GetToken()
+		{
+			return AccessToken;
 		}
 	}
 }

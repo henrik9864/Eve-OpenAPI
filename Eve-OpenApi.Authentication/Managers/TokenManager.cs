@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication.Interfaces;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,9 @@ namespace EveOpenApi.Authentication.Managers
 		IResponseManager responseManager;
 		IValidationManager validationManager;
 
-		ITokenFactory tokenFactory;
+		IOauthTokenFactory tokenFactory;
 
-		public TokenManager(ILoginConfig config, ILoginCredentials credentials, IResponseManager responseManager, IValidationManager validationManager, ITokenFactory tokenFactory, IHttpHandler client)
+		public TokenManager(ILoginConfig config, ILoginCredentials credentials, IResponseManager responseManager, IValidationManager validationManager, IOauthTokenFactory tokenFactory, IHttpHandler client)
 		{
 			this.config = config;
 			this.credentials = credentials;
@@ -35,7 +36,7 @@ namespace EveOpenApi.Authentication.Managers
 			this.client = client;
 		}
 
-		public async Task<(IToken token, string owner)> GetToken(IScope scope)
+		public async Task<(IOauthToken token, string owner)> GetToken(IScope scope)
 		{
 			AuthUrl authUrl = GenerateAuthUrl(scope.ScopeString);
 			IAuthResponse response =  await responseManager.GetResponse(authUrl.Url, 10000);
@@ -43,15 +44,15 @@ namespace EveOpenApi.Authentication.Managers
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GetToken(response, authUrl, scope);
+			IOauthToken token = await GetToken(response, authUrl, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
 		}
 
-		public async Task<(IToken token, string owner)> RefreshToken(string refreshToken, IScope scope)
+		public async Task<(IOauthToken token, string owner)> RefreshToken(string refreshToken, IScope scope)
 		{
-			IToken token = await GetToken(refreshToken, scope);
+			IOauthToken token = (IOauthToken)await GetToken(refreshToken, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
@@ -62,14 +63,14 @@ namespace EveOpenApi.Authentication.Managers
 			return GenerateAuthUrl(scope.ScopeString);
 		}
 
-		public async Task<(IToken token, string owner)> ListenForResponse(IScope scope, AuthUrl authUrl)
+		public async Task<(IOauthToken token, string owner)> ListenForResponse(IScope scope, AuthUrl authUrl)
 		{
 			IAuthResponse response = await responseManager.AwaitResponse(20000);
 
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
 
-			IToken token = await GetToken(response, authUrl, scope);
+			IOauthToken token = await GetToken(response, authUrl, scope);
 			IJwtToken jwtToken = await validationManager.ValidateTokenAsync(token);
 
 			return (token, jwtToken.Name);
@@ -82,7 +83,7 @@ namespace EveOpenApi.Authentication.Managers
 		/// <param name="authUrl"></param>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		async Task<IToken> GetToken(IAuthResponse response, AuthUrl authUrl, IScope scope)
+		async Task<IOauthToken> GetToken(IAuthResponse response, AuthUrl authUrl, IScope scope)
 		{
 			var tokenRequest = GetTokenRequest(response.Code, authUrl.CodeVerifier);
 			var tokenResponse = await client.SendAsync(tokenRequest);

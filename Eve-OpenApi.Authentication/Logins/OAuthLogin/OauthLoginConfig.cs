@@ -18,7 +18,7 @@ namespace EveOpenApi.Authentication
 
 		public string TokenName { get; set; }
 
-		public static OauthLoginConfig Eve
+		public static OauthLoginConfig Tranquility
 		{
 			get
 			{

@@ -1,11 +1,11 @@
 ﻿using EveOpenApi.Interfaces;
 using EveOpenApi.Managers.CacheControl;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace EveOpenApi.Api
 {
@@ -41,7 +41,7 @@ namespace EveOpenApi.Api
 			Expired = expired;
 			CacheControl = cacheControl;
 
-			this.response = response.Select(x => JsonConvert.DeserializeObject<T>(x));
+			this.response = response.Select(x => JsonSerializer.Deserialize<T>(x));
 			FirstPage = this.response.FirstOrDefault();
 		}
 

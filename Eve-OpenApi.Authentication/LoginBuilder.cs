@@ -1,113 +1,40 @@
-﻿using EveOpenApi.Api.Factories;
-using EveOpenApi.Authentication;
-using EveOpenApi.Authentication.Interfaces;
-using EveOpenApi.Authentication.Managers;
-using EveOpenApi.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
 {
 	public class LoginBuilder
 	{
-		public ILoginConfig Config { get; private set; }
-
-		public ILoginCredentials Credentials { get; private set; }
-
-		private List<TokenSave> Tokens { get; set; }
-
-		public LoginBuilder()
+		/// <summary>
+		/// Standard oauth login.
+		/// </summary>
+		public OAuthLoginBuilder OAuth
 		{
-			Tokens = new List<TokenSave>();
+			get
+			{
+				return new OAuthLoginBuilder();
+			}
 		}
 
-		public LoginBuilder(ILoginConfig config) : this()
+		public KeyLoginBuilder Key
 		{
-			Config = config;
+			get
+			{
+				return new KeyLoginBuilder();
+			}
 		}
 
 		/// <summary>
-		/// Without the client secret the library will use the PKCE protocol
+		/// OAuth login preconfigured for eve tranquility sso
 		/// </summary>
-		/// <param name="clientID"></param>
-		/// <param name="callback"></param>
-		/// <returns></returns>
-		public LoginBuilder WithCredentials(string clientID, string callback)
+		public OAuthLoginBuilder Eve
 		{
-			Credentials = new OauthLoginCredentials()
+			get
 			{
-				ClientID = clientID,
-				Callback = callback,
-			};
-
-			return this;
-		}
-
-		public LoginBuilder WithCredentials(string clientID, string clientSecret, string callback)
-		{
-			Credentials = new OauthLoginCredentials()
-			{
-				ClientID = clientID,
-				ClientSecret = clientSecret,
-				Callback = callback
-			};
-
-			return this;
-		}
-
-		public LoginBuilder FromFile(string path)
-		{
-			string encryptedJson = File.ReadAllText(path);
-
-			return FromEncrypted(encryptedJson);
-		}
-
-		public LoginBuilder FromString(string json)
-		{
-			Tokens = JsonSerializer.Deserialize<List<TokenSave>>(json);
-
-			return this;
-		}
-
-		public LoginBuilder FromEncrypted(string encryptedJson)
-		{
-			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
-			string json = StringCipher.Decrypt(encryptedJson, passPhrase);
-
-			return FromString(json);
-		}
-
-		public async Task<ILogin> BuildOauth()
-		{
-			if (Config is null)
-				throw new NullReferenceException("Config cannot be null");
-
-			if (Credentials is null)
-				throw new NullReferenceException("Credentials cannot be null");
-
-			IHttpHandler httpHandler = new HttpHandler();
-			ITokenFactory tokenFactory = new TokenFactory();
-			IFactory<IAuthResponse> authResponseFactory = new AuthResponseFactory();
-
-			IResponseManager responseManager = new ResponseManager(Credentials, authResponseFactory);
-			IValidationManager validationManager = new ValidationManager(Config, httpHandler);
-			ITokenManager tokenManager = new TokenManager(Config, Credentials, responseManager, validationManager, tokenFactory, httpHandler);
-
-			ILogin login = new OauthLogin(Config, Credentials, tokenManager);
-			for (int i = 0; i < Tokens.Count; i++) // Readd all tokens from saved file.
-				await login.AddToken(Tokens[i].RefreshToken, (Scope)Tokens[i].Scope);
-
-			return login;
-		}
-
-		public Task<ILogin> BuildEve()
-		{
-			Config = OauthLoginConfig.Eve;
-			return BuildOauth();
+				return new OAuthLoginBuilder()
+					.WithConfig(OauthLoginConfig.Tranquility);
+			}
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Authentication.Jwt;
+﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication.Jwt;
 using Jose;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace EveOpenApi.Authentication.Managers
 			this.client = client;
 		}
 
-		public async Task<IJwtToken> ValidateTokenAsync(IToken token)
+		public async Task<IJwtToken> ValidateTokenAsync(IOauthToken token)
 		{
 			IJwtToken jwtToken;
 			using (HttpResponseMessage response = await client.GetAsync(config.JwtKeySetEndpoint))

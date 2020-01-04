@@ -1,10 +1,10 @@
 ﻿using EveOpenApi.Interfaces;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace EveOpenApi.Api
 {
@@ -19,7 +19,7 @@ namespace EveOpenApi.Api
 		{
 			if (response.First().Length > 0 && response.First()[0] == '{')
 			{
-				dynamic jObj = JsonConvert.DeserializeObject(base.FirstPage);
+				dynamic jObj = JsonSerializer.Deserialize<dynamic>(base.FirstPage);
 				Error = jObj.error;
 			}
 			else

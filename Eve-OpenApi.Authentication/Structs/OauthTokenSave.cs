@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace EveOpenApi.Authentication
 {
-	internal struct OauthToken
+	internal struct OauthTokenSave
 	{
 		[JsonPropertyName("access_token")]
 		public string AccessToken { get; set; }
@@ -19,7 +19,7 @@ namespace EveOpenApi.Authentication
 		[JsonPropertyName("token_type")]
 		public string TokenType { get; set; }
 
-		public OauthToken(string accessToken, string refreshToken, uint expires, string tokenType)
+		public OauthTokenSave(string accessToken, string refreshToken, uint expires, string tokenType)
 		{
 			AccessToken = accessToken;
 			RefreshToken = refreshToken;

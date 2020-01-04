@@ -1,81 +1,71 @@
-﻿using System;
+﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EveOpenApi.Authentication
 {
-	public class KeyLogin : ILogin
+	public class KeyLogin : IKeyLogin
 	{
-		public IToken this[string user, string scope]
+		Dictionary<string, List<IToken>> keys;
+
+		IFactory<IToken> tokenFactory;
+
+		internal KeyLogin(IFactory<IToken> tokenFactory)
 		{
-			get
+			this.tokenFactory = tokenFactory;
+			keys = new Dictionary<string, List<IToken>>();
+		}
+
+		public void AddKey(string key, string user, IScope scope)
+		{
+			IToken token = tokenFactory.Create(key, scope);
+			if (!this.keys.TryGetValue(user, out List<IToken> tokens))
 			{
-				throw new NotImplementedException();
+				tokens = new List<IToken>();
+				keys[user] = tokens;
 			}
+
+			tokens.Add(token);
 		}
 
-		public ILoginConfig Config
+		public async Task<IToken> GetToken(string user, IScope scope)
 		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public Task<IToken> AddToken(IScope scope)
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<IToken> AddToken(string refreshToken, IScope scope)
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<string> GetAuthUrl(IScope scope)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IToken GetToken(string user, IScope scope)
-		{
-			throw new NotImplementedException();
+			await Task.CompletedTask;
+			return keys[user].Find(a => a.Scope.IsSubset(scope));
 		}
 
 		public IList<IToken> GetTokens(string user)
 		{
-			throw new NotImplementedException();
+			return keys[user];
 		}
 
 		public IList<string> GetUsers()
 		{
-			throw new NotImplementedException();
-		}
-
-		public Task<IToken> RefreshToken(IToken token)
-		{
-			throw new NotImplementedException();
+			return keys.ToList().Select(x => x.Key).ToList();
 		}
 
 		public void SaveToFile(string path, bool @override)
 		{
-			throw new NotImplementedException();
-		}
+			if (File.Exists(path) && !@override)
+				throw new Exception("File already exists, enable override to override it.");
 
-		public string ToEncrypted()
-		{
-			throw new NotImplementedException();
+			string json = ToJson();
+			File.WriteAllText(path, json);
 		}
 
 		public string ToJson()
 		{
-			throw new NotImplementedException();
-		}
+			List<KeyTokenSave> keys = this.keys
+				.SelectMany(x => x.Value.ConvertAll(a => new KeyTokenSave(a.GetToken(), x.Key, a.Scope.ScopeString)))
+				.ToList();
 
-		public bool TryGetToken(string user, IScope scope, out IToken token)
-		{
-			throw new NotImplementedException();
+			return JsonSerializer.Serialize(("Key", keys));
 		}
 	}
 }
