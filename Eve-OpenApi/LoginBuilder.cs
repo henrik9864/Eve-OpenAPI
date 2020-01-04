@@ -61,13 +61,24 @@ namespace EveOpenApi.Authentication
 
 		public LoginBuilder FromFile(string path)
 		{
-			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
 			string encryptedJson = File.ReadAllText(path);
 
-			string json = StringCipher.Decrypt(encryptedJson, passPhrase);
+			return FromEncrypted(encryptedJson);
+		}
+
+		public LoginBuilder FromString(string json)
+		{
 			Tokens = JsonSerializer.Deserialize<List<TokenSave>>(json);
 
 			return this;
+		}
+
+		public LoginBuilder FromEncrypted(string encryptedJson)
+		{
+			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
+			string json = StringCipher.Decrypt(encryptedJson, passPhrase);
+
+			return FromString(json);
 		}
 
 		public async Task<ILogin> BuildOauth()

@@ -99,23 +99,37 @@ namespace EveOpenApi.Authentication
 			return userTokens[user];
 		}
 
+		/// <summary>
+		/// Saves
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="override"></param>
 		public void SaveToFile(string path, bool @override)
 		{
 			if (File.Exists(path) && !@override)
 				throw new Exception("File already exists, enable override to override it.");
 
+			string encryptedJson = ToEncrypted();
+			File.WriteAllText(path, encryptedJson);
+		}
+
+		public string ToJson()
+		{
 			List<TokenSave> tokens = userTokens.Values
 				.SelectMany(x => x)
 				.ToList()
 				.ConvertAll(a => new TokenSave(a.RefreshToken, a.Scope.ScopeString));
 
-			string json = JsonSerializer.Serialize(tokens);
+			return JsonSerializer.Serialize(tokens);
+		}
+
+		public string ToEncrypted()
+		{
+			string json = ToJson();
 
 			// Use client secret if supplied
 			string passPhrase = string.IsNullOrEmpty(Credentials.ClientSecret) ? Credentials.ClientID : Credentials.ClientSecret;
-			string encryptedJson = StringCipher.Encrypt(json, passPhrase);
-
-			File.WriteAllText(path, encryptedJson);
+			return StringCipher.Encrypt(json, passPhrase);
 		}
 
 		void AddToken(string owner, IToken token)

@@ -28,5 +28,9 @@ namespace EveOpenApi.Authentication
 		IList<IToken> GetTokens(string user);
 
 		void SaveToFile(string path, bool @override);
+
+		string ToJson();
+
+		string ToEncrypted();
 	}
 }
