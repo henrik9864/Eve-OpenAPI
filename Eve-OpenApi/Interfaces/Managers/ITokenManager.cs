@@ -12,6 +12,6 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		void AddAuthTokens(IApiRequest request);
+		Task AddAuthTokens(IApiRequest request);
 	}
 }

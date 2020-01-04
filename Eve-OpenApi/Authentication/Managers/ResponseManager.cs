@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EveOpenApi.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -23,20 +24,22 @@ namespace EveOpenApi.Authentication.Managers
 			"</html>";
 
 		ILoginCredentials credentials;
+		IFactory<IAuthResponse> authResponseFactory;
 
-		public ResponseManager(ILoginCredentials credentials)
+		public ResponseManager(ILoginCredentials credentials, IFactory<IAuthResponse> authResponseFactory)
 		{
 			this.credentials = credentials;
+			this.authResponseFactory = authResponseFactory;
 		}
 
-		public async Task<AuthResponse> GetResponse(string authUrl, int timeout)
+		public async Task<IAuthResponse> GetResponse(string authUrl, int timeout)
 		{
 			OpenUrl(authUrl);
 
 			return await AwaitResponse(timeout);
 		}
 
-		public async Task<AuthResponse> AwaitResponse(int timeout)
+		public async Task<IAuthResponse> AwaitResponse(int timeout)
 		{
 			var listenerTask = ListenForResponse();
 			await Task.WhenAny(listenerTask, Task.Delay(timeout));
@@ -47,7 +50,7 @@ namespace EveOpenApi.Authentication.Managers
 				throw new TimeoutException();
 		}
 
-		async Task<AuthResponse> ListenForResponse()
+		async Task<IAuthResponse> ListenForResponse()
 		{
 			NameValueCollection parameters;
 			using (HttpListener listener = new HttpListener())
@@ -63,11 +66,7 @@ namespace EveOpenApi.Authentication.Managers
 				parameters = HttpUtility.ParseQueryString(context.Request.Url.Query);
 			}
 
-			return new AuthResponse()
-			{
-				Code = parameters.Get(0),
-				State = parameters.Get(1)
-			};
+			return authResponseFactory.Create(parameters.Get(0), parameters.Get(1));
 		}
 
 		async Task DisplayHtmlResponse(Stream outputStream)

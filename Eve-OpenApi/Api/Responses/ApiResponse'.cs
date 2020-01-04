@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Managers.CacheControl;
+﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Managers.CacheControl;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -16,7 +17,7 @@ namespace EveOpenApi.Api
 
 		public string ETag { get; }
 
-		public CacheControl CacheControl { get; }
+		public ICacheControl CacheControl { get; }
 
 		public DateTime Expired { get; private set; }
 
@@ -34,11 +35,11 @@ namespace EveOpenApi.Api
 
 		IEnumerable<T> response;
 
-		internal ApiResponse(string eTag, IEnumerable<string> response, DateTime expired, string cacheControl)
+		internal ApiResponse(string eTag, IEnumerable<string> response, DateTime expired, ICacheControl cacheControl)
 		{
 			ETag = eTag;
 			Expired = expired;
-			CacheControl = new CacheControl(cacheControl);
+			CacheControl = cacheControl;
 
 			this.response = response.Select(x => JsonConvert.DeserializeObject<T>(x));
 			FirstPage = this.response.FirstOrDefault();

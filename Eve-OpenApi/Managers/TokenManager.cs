@@ -23,13 +23,13 @@ namespace EveOpenApi.Managers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public void AddAuthTokens(IApiRequest request)
+		public async Task AddAuthTokens(IApiRequest request)
 		{
 			if (Login is null && !string.IsNullOrEmpty(request.Scope))
 				throw new Exception("No login provided");
 
 			if (Login != null || Config.AlwaysIncludeAuthHeader)
-				AddAuthToken(request);
+				await AddAuthToken(request);
 		}
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">Wich request to add to</param>
 		/// <returns></returns>
-		void AddAuthToken(IApiRequest request)
+		async Task AddAuthToken(IApiRequest request)
 		{
 			if (string.IsNullOrEmpty(request.Scope))
 				return;
@@ -51,6 +51,9 @@ namespace EveOpenApi.Managers
 
 			if (!Login.TryGetToken(request.User, (Scope)request.Scope, out IToken token))
 				throw new Exception($"No token with scope '{request.Scope}'");
+
+			if (DateTime.UtcNow > token.Expires)
+				token = await Login.RefreshToken(token);
 
 			AddTokenLocation(request, token.AccessToken);
 		}

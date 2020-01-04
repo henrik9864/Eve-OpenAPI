@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Managers.CacheControl;
+﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Managers.CacheControl;
 using System;
 
 namespace EveOpenApi.Api
@@ -18,6 +19,6 @@ namespace EveOpenApi.Api
 		/// <summary>
 		/// Information about how this response should be cached
 		/// </summary>
-		CacheControl CacheControl { get; }
+		ICacheControl CacheControl { get; }
 	}
 }

@@ -1,11 +1,12 @@
 ﻿using EveOpenApi.Enums;
+using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace EveOpenApi.Managers.CacheControl
 {
-	public class CacheControl
+	public class CacheControl : ICacheControl
 	{
 		public Cacheability Cacheability { get; } = Cacheability.Public;
 

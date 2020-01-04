@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,7 +38,7 @@ namespace EveOpenApi.Authentication.Managers
 		public async Task<(IToken token, string owner)> GetToken(IScope scope)
 		{
 			AuthUrl authUrl = GenerateAuthUrl(scope.ScopeString);
-			AuthResponse response =  await responseManager.GetResponse(authUrl.Url, 10000);
+			IAuthResponse response =  await responseManager.GetResponse(authUrl.Url, 10000);
 
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
@@ -63,7 +64,7 @@ namespace EveOpenApi.Authentication.Managers
 
 		public async Task<(IToken token, string owner)> ListenForResponse(IScope scope, AuthUrl authUrl)
 		{
-			AuthResponse response = await responseManager.AwaitResponse(20000);
+			IAuthResponse response = await responseManager.AwaitResponse(20000);
 
 			if (authUrl.State != response.State)
 				throw new Exception("Invalid auth response state.");
@@ -81,7 +82,7 @@ namespace EveOpenApi.Authentication.Managers
 		/// <param name="authUrl"></param>
 		/// <param name="scope"></param>
 		/// <returns></returns>
-		async Task<IToken> GetToken(AuthResponse response, AuthUrl authUrl, IScope scope)
+		async Task<IToken> GetToken(IAuthResponse response, AuthUrl authUrl, IScope scope)
 		{
 			var tokenRequest = GetTokenRequest(response.Code, authUrl.CodeVerifier);
 			var tokenResponse = await client.SendAsync(tokenRequest);

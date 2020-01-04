@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using EveOpenApi.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace EveOpenApi.Api
 
 		public HttpStatusCode StatusCode { get; }
 
-		internal ApiError(string eTag, IEnumerable<string> response, DateTime expired, string cacheControl, HttpStatusCode statusCode)
+		internal ApiError(string eTag, IEnumerable<string> response, DateTime expired, ICacheControl cacheControl, HttpStatusCode statusCode)
 			: base(eTag, response, expired, cacheControl)
 		{
 			if (response.First().Length > 0 && response.First()[0] == '{')

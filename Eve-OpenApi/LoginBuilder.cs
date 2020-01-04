@@ -1,6 +1,8 @@
-﻿using EveOpenApi.Authentication;
+﻿using EveOpenApi.Api.Factories;
+using EveOpenApi.Authentication;
 using EveOpenApi.Authentication.Interfaces;
 using EveOpenApi.Authentication.Managers;
+using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,8 +80,9 @@ namespace EveOpenApi.Authentication
 
 			IHttpHandler httpHandler = new HttpHandler();
 			ITokenFactory tokenFactory = new TokenFactory();
+			IFactory<IAuthResponse> authResponseFactory = new AuthResponseFactory();
 
-			IResponseManager responseManager = new ResponseManager(Credentials);
+			IResponseManager responseManager = new ResponseManager(Credentials, authResponseFactory);
 			IValidationManager validationManager = new ValidationManager(Config, httpHandler);
 			ITokenManager tokenManager = new TokenManager(Config, Credentials, responseManager, validationManager, tokenFactory, httpHandler);
 

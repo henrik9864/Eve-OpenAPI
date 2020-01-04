@@ -22,8 +22,11 @@ namespace EveOpenApi.Managers
 		int errorRemain = 100;
 		DateTime errorReset;
 
-		public ResponseManager(IHttpHandler client, IApiConfig config, ILogin login) : base(client, login, config)
+		IFactory<ICacheControl> cacheControlFactory;
+
+		public ResponseManager(IHttpHandler client, IApiConfig config, ILogin login, IFactory<ICacheControl> cacheControlFactory) : base(client, login, config)
 		{
+			this.cacheControlFactory = cacheControlFactory;
 		}
 
 		public async Task<IApiResponse<T>> GetResponse<T>(IApiRequest request)
@@ -54,15 +57,17 @@ namespace EveOpenApi.Managers
 			string nowString = TryGetHeaderValue(httpResponse.Headers, "Date");
 			string cacheControlString = TryGetHeaderValue(httpResponse.Content.Headers, "cache-control");
 
+			ICacheControl cacheControl = cacheControlFactory.Create(cacheControlString);
+
 			// Return an error if the request failed
 			DateTime expired = ParseDateTime(expireString, nowString);
 			if (!httpResponse.IsSuccessStatusCode)
-				return new ApiError(eTag, responseArr, expired, cacheControlString, httpResponse.StatusCode);
+				return new ApiError(eTag, responseArr, expired, cacheControl, httpResponse.StatusCode);
 
 			for (int i = 1; i < pages; i++)
 				responseArr[i] = await GetPage(request, i);
 
-			return new ApiResponse(eTag, responseArr, expired, cacheControlString);
+			return new ApiResponse(eTag, responseArr, expired, cacheControl);
 		}
 
 		async Task<HttpResponseMessage> GetHttpRequest(IApiRequest request)

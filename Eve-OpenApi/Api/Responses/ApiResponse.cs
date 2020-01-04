@@ -1,4 +1,5 @@
-﻿using EveOpenApi.Managers.CacheControl;
+﻿using EveOpenApi.Interfaces;
+using EveOpenApi.Managers.CacheControl;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -30,17 +31,15 @@ namespace EveOpenApi.Api
 			}
 		}
 
-		public CacheControl CacheControl { get; }
+		public ICacheControl CacheControl { get; }
 
-		string cacheControlString;
 		IEnumerable<string> response;
 
-		internal ApiResponse(string eTag, IEnumerable<string> response, DateTime expired, string cacheControl)
+		internal ApiResponse(string eTag, IEnumerable<string> response, DateTime expired, ICacheControl cacheControl)
 		{
 			ETag = eTag;
 			Expired = expired;
-			CacheControl = new CacheControl(cacheControl);
-			cacheControlString = cacheControl;
+			CacheControl = cacheControl;
 			FirstPage = response.FirstOrDefault();
 			this.response = response;
 		}
@@ -56,7 +55,7 @@ namespace EveOpenApi.Api
 
 		public virtual IApiResponse<T> ToType<T>()
 		{
-			return new ApiResponse<T>(ETag, response, Expired, cacheControlString);
+			return new ApiResponse<T>(ETag, response, Expired, CacheControl);
 		}
 
 		public IEnumerator<string> GetEnumerator()
