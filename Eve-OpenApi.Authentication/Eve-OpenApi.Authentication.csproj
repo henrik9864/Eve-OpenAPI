@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="jose-jwt" Version="2.4.0" />
+    <ProjectReference Include="..\Eve-OpenApi\Eve-OpenApi.csproj" />
   </ItemGroup>
 
 </Project>
