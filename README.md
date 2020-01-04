@@ -1,104 +1,144 @@
 # Eve-OpenAPI
 A library for accessing EVE online's ESI api.
 
-## Getting Started
-
-### Installation
+## Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.3.5
+Install-Package Eve-OpenApi -Version 0.4.0
 ```
 Get AspNet core support: https://www.nuget.org/packages/Eve-OpenApi.DpendencyInjection/ <br />
 ```
-Install-Package Eve-OpenApi.DpendencyInjection -Version 0.3.5
+Install-Package Eve-OpenApi.DpendencyInjection -Version 0.4.0
 ```
 
-### Example
+## Setup Login
 
-#### Create a EveLogin
+Eve-OpenAPI does not require a login for it to work on endpoints that does not require a scope so this step is optional dont plan on using any. For programs you plan on distributing Eve-OpenAPI does not require a client secret. Read more at https://github.com/esi/esi-docs.
 
-Eve-OpenAPI does not require a client secret as it uses the new v2 authorization. It will autmaticly generate a code challenge and a verifier. Read more at https://github.com/esi/esi-docs.
+#### Standard eve login.
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
-string Scope = "esi scopes separated by a space";
 
-EveLogin login = await EveLogin.Login(Scope, ClientID, Callback);
+ILogin login = await new LoginBuilder()
+  .WithCredentials(ClientID, Callback)
+  .BuildEve();
 ```
-<br />
-
-If you need alternative ways to give the user the auth URL, for example on servers.
+#### Custom oauth login.
+If you need a custom login for your api you can customize it with a ILoginConfig
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
-string Scope = "esi scopes separated by a space";
+ILoginConfig Config = new LoginConfig();
 
-EveLogin login = await EveLogin.Create(ClientID, Callback);
-string AuthUrl = await login.Authenticate(Scope);
-
-// Do whatever you want withe URL, here i open it in the browser
-OpenUrl(AuthUrl);
+ILogin login = await new LoginBuilder(Config)
+  .WithCredentials(ClientID, Callback)
+  .BuildOAuth();
 ```
-<br />
-
-Or alternativly if you want to load from a save file.
+#### Adding tokens.
+If you want the library to open the url for you do this.
 ```cs
-string FilePath = "path to your save file";
-
-ILogin login = await EveLogin.FromFile(FilePath);
+IScope Scope = (Scope)"<esi scope>";
+await login.AddToken(Scope);
 ```
-#### Save EveLogin
-There is two ways to save a EveLogin. The SaveToFile method automaticly writes it to a file, if you want more control you can use the ToJson method.
-
+If you want a custom way to give users the auth url. This method will setup a web listener in the background to handle the response.
 ```cs
-// Let EveLogin handle file manipulation
-string FilePath = "path to your save file";
+IScope Scope = (Scope)"<esi scope>";
+string url = await login.GetAuthUrl(Scope);
 
-// Do it yourself
-string json = await login.ToJson(FilePath);
+// Do stuff with url
 ```
-#### Create a SeatLogin
+#### Saving and loading tokens.
 ```cs
-// SeAT code must be obtained by your seat administrator and must be specific for your IP.
-ILogin login = new SeatLogin("Your SeAT key here");
-```
+string ClientID = "your eve developer client id";
+string Callback = "client callback url";
+string SaveFile = "Path to savefile"
 
-#### Setup ESI specific API
-It is reccomended that you always give a UserAgent, then CCP is less likely to remove your access to ESI. This library will not work without one.
+ILogin login = await new LoginBuilder()
+  .WithCredentials(ClientID, Callback)
+  .FromFile(Savefile)
+  .BuildEve();
+
+// Will save and encrypted file with a refresh token for all added tokens.
+login.SaveToFile(SaveFile, true);
+```
+## Setup API
+#### Creating API config
+To have the API pull from ESI you have to setup its config to do so. This is also where you supply your user agent and feault user. The library will not work without the user agent being set.
 ```cs
-ApiConfig config = new ApiConfig {
-  UserAgent = "Your user agent",
+IApiConfig config = new EsiConfig()
+{
+  UserAgent = "Your cool user agent",
 };
-
-// When you create the ESI interface you must specify both version and datasource, Eve-OpenaAPI will then automaticly downlad the spec for that version.
-API api = await API.CreateEsi(EsiVersion.Latest, Datasource.Tranquility, login, client, config);
 ```
-#### Setup API
+If you want to pull from an OpenAPI with no preset included you can create your own custom api config.
 ```cs
-ApiConfig config = new ApiConfig {
-  UserAgent = "Your user agent",
+IApiConfig config = new ApiConfig()
+{
+  UserAgent = "Your cool user agent",
+  SpecURL = "Link to the swagger spec v2 or v3",
+  TokenLocation = "Where your oauth token are put", // This can be one of two values header or query
+  TokenName = "Name of the token parameter"
 };
-
-// Connect the API interface to an arbitrary api.
-API api = API.Create("Specification URL", config: config);
-
-// If the API require authentication you can pass in the login as the second argument, like for example ESI or SeAT.
-API api = API.Create("Specification URL", login, config: config);
 ```
-#### Retrive data from API interface
+#### Build the API
+Once you have created the config you can now build the api. The login can be omitted if you dont need it.
+```cs
+IAPI api = new ApiBuilder(config, login).Build();
+```
+## Get data from the API
 This example is shown using ESI but the interface works the same way for all API's.
 ```cs
 // First you must select a path, this path will be validated to make sure you are using the right EsiVersion
-ApiPath path = esi.Path("/characters/{character_id}/mail/");
-
-ApiResponse response = await path.Get("Character Name", ("character_id", "character id"));
+IApiPath path = api.Path("/characters/{character_id}/mail/");
+IApiResponse response = await api.Get(("character_id", "character id"));
 
 // If you have a class for the response you can also specify that in the request.
-ApiResponse<T> response = await path.Get<T>("Character Name", ("character_id", "character id"));
+// You can also set a other user to ovveride DefaultUser
+IApiResponse<T> response = await api.SetUsers("Character ID").Get<T>(("character_id", "character id"));
 
-// If you want to do a batch request to for multiple characters use GetBatch
-List<object> characterIDs = new List<object>() {"character id", "character id"};
-Lis<ApiResponse<T>> response = await path.GetBatch<T>("Character Name", ("character_id", characterIDs));
+// If you want to do a batch request to for multiple values use GetBatch
+// This also works with characters
+List<object> CharacterIDs = new List<object>() {"character id", "character id"};
+List<string> EveCharacterIDs = new List<string>() {"Character ID", "Character ID"};
+Lis<IApiResponse<T>> response = await path.SetUsers(EveCharacterIDs).GetBatch<T>(("character_id", CharacterIDs));
+```
+### Interacting with the data
+```cs
+// First you must select a path, this path will be validated to make sure you are using the right EsiVersion
+IApiPath path = api.Path("/characters/{character_id}/mail/");
+IApiResponse response = await path.Get(("character_id", "character id");
+
+// If you response does not have any pagination or you only want the first page
+response.FirstPage
+
+// IApiResponse extends IEnumerable so can access each page by enumerating over the response.
+foreach (string page in response) // page type deafults to string and will be the same as T
+{
+
+}
+
+// If you want to flatten the pages into one item you can use System.Linq
+response.Aggregate((a, b) => a + b);
+```
+### Listening for events
+This library currrently comes with two events OnChange and OnExpire.
+```cs
+IApiEventMethod method = api.PathEvent("/characters/{character_id}/location/").Get(("character_id", 96037287));
+method.OnChange += Change; // Called each time the value for this endpoint changes between each expire
+method.OnExpire += Update; // Called each time the data from this enpoint becomes stale
+
+void Update(IApiResponse a1, IApiResponse a2)
+{
+  Console.WriteLine("Updated location!");
+}
+
+void Change(IApiResponse a1, IApiResponse a2)
+{
+  Console.WriteLine("	Changed location!");
+  Console.WriteLine($"	{a1.FirstPage}");
+  Console.WriteLine($"	{a2.FirstPage}");
+}
 ```
 ---
 
