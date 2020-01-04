@@ -1,10 +1,10 @@
 ﻿using EveOpenApi.Api;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using System;
 using System.Net;
-using EveOpenApi.Authentication;
 
 namespace EveOpenApi
 {

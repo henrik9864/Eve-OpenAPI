@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EveOpenApi.Authentication
 {
-	public class LoginConfig : ILoginConfig
+	public class OauthLoginConfig : ILoginConfig
 	{
 		public string AuthenticationEndpoint { get; set; }
 
@@ -18,11 +18,11 @@ namespace EveOpenApi.Authentication
 
 		public string TokenName { get; set; }
 
-		public static LoginConfig Eve
+		public static OauthLoginConfig Eve
 		{
 			get
 			{
-				return new LoginConfig()
+				return new OauthLoginConfig()
 				{
 					AuthenticationEndpoint = "https://login.eveonline.com/v2/oauth/authorize/",
 					TokenEndpoint = "https://login.eveonline.com/v2/oauth/token/",

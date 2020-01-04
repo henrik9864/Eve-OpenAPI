@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EveOpenApi.Authentication
 {
-	public class LoginCredentials : ILoginCredentials
+	public class OauthLoginCredentials : ILoginCredentials
 	{
 		public string ClientID { get; set; }
 

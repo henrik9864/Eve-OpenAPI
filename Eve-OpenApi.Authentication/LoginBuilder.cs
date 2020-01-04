@@ -38,7 +38,7 @@ namespace EveOpenApi.Authentication
 		/// <returns></returns>
 		public LoginBuilder WithCredentials(string clientID, string callback)
 		{
-			Credentials = new LoginCredentials()
+			Credentials = new OauthLoginCredentials()
 			{
 				ClientID = clientID,
 				Callback = callback,
@@ -49,7 +49,7 @@ namespace EveOpenApi.Authentication
 
 		public LoginBuilder WithCredentials(string clientID, string clientSecret, string callback)
 		{
-			Credentials = new LoginCredentials()
+			Credentials = new OauthLoginCredentials()
 			{
 				ClientID = clientID,
 				ClientSecret = clientSecret,
@@ -106,7 +106,7 @@ namespace EveOpenApi.Authentication
 
 		public Task<ILogin> BuildEve()
 		{
-			Config = LoginConfig.Eve;
+			Config = OauthLoginConfig.Eve;
 			return BuildOauth();
 		}
 	}
