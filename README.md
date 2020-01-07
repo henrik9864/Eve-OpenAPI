@@ -20,47 +20,60 @@ Eve-OpenAPI does not require a login for it to work on endpoints that does not r
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
 
-ILogin login = await new LoginBuilder()
+// Create a preconfigured login for EVE Tranquility SSO.
+// Other preconfigurations and base classes to setup custom login can be found here.
+ILogin login = await new LoginBuilder().Eve
   .WithCredentials(ClientID, Callback)
-  .BuildEve();
+  .Build();
 ```
 #### Custom oauth login.
-If you need a custom login for your api you can customize it with a ILoginConfig
+If you need a custom login for your api you can customize it with a ILoginConfig. Eve-OpenAPI comes with two login solutions, OAuth and key. OAuth is the standard OAuth protocol for creating and using access tokens and key is where you manually get a key from the api.
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
 ILoginConfig Config = new LoginConfig();
 
-ILogin login = await new LoginBuilder(Config)
+ILogin login = await new LoginBuilder(Config).OAuth
   .WithCredentials(ClientID, Callback)
-  .BuildOAuth();
+  .Build();
 ```
-#### Adding tokens.
+#### Adding tokens with oauth.
 If you want the library to open the url for you do this.
 ```cs
 IScope Scope = (Scope)"<esi scope>";
 await login.AddToken(Scope);
 ```
-If you want a custom way to give users the auth url. This method will setup a web listener in the background to handle the response.
+If you want a custom way to give users the auth url with oauth. This method will setup a web listener in the background to handle the response.
 ```cs
 IScope Scope = (Scope)"<esi scope>";
-string url = await login.GetAuthUrl(Scope);
+string url = await login.GetAuthUrl(Scope); // Login must be of type IOauthLogin
 
 // Do stuff with url
 ```
-#### Saving and loading tokens.
+#### Adding tokens with key.
+Adding a key is as simple as building the login and giving it a key
+```cs
+IKeyLogin login = new LoginBuilder().Key
+				.Build();
+
+// User is reccomended to keep as the default user set in the API config.
+login.AddKey("<Key from API>", "<User>", "<Scope>");
+```
+
+#### Saving and loading tokens with OAuth.
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
 string SaveFile = "Path to savefile"
 
+// NOTE. Make sure you dont load encrypted files as raw text
 ILogin login = await new LoginBuilder()
   .WithCredentials(ClientID, Callback)
-  .FromFile(Savefile)
-  .BuildEve();
+  .FromFileEncrypted(Savefile)
+  .Build();
 
 // Will save and encrypted file with a refresh token for all added tokens.
-login.SaveToFile(SaveFile, true);
+login.SaveToFileEncrypted(SaveFile, true);
 ```
 ## Setup API
 #### Creating API config
