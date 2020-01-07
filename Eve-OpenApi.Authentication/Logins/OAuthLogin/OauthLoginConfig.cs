@@ -31,5 +31,19 @@ namespace EveOpenApi.Authentication
 				};
 			}
 		}
+
+		public static OauthLoginConfig Singularity
+		{
+			get
+			{
+				return new OauthLoginConfig()
+				{
+					AuthenticationEndpoint = "https://sisilogin.testeveonline.com/oauth/authorize",
+					TokenEndpoint = "https://sisilogin.testeveonline.com/oauth/token",
+					JwtKeySetEndpoint = "https://sisilogin.testeveonline.com/oauth/verify",
+					AuthType = "basic",
+				};
+			}
+		}
 	}
 }
