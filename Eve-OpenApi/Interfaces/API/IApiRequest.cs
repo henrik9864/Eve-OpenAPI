@@ -1,58 +1,27 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 
 namespace EveOpenApi.Api
 {
 	internal interface IApiRequest
 	{
-		/// <summary>
-		/// Domain URI to the API
-		/// </summary>
-		string BaseUrl { get; }
+		public Uri RequestUri { get; }
 
-		/// <summary>
-		/// What method to use on the endpoint
-		/// </summary>
-		HttpMethod Method { get; }
+		public HttpMethod HttpMethod { get; }
 
-		/// <summary>
-		/// List of parameters to supply the API
-		/// </summary>
-		ParsedParameters Parameters { get; }
+		public string User { get; }
 
-		/// <summary>
-		/// Relative path to the endpoint.
-		/// </summary>
-		string Path { get; }
+		public string Scope { get; }
 
-		/// <summary>
-		/// Scopes for this requrest.
-		/// </summary>
-		string Scope { get; }
+		public IDictionary<string, string> Headers { get; }
 
 		/// <summary>
 		/// Add a parameter to the query of this request.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void AddToQuery(string name, string value);
-
-		int GetHashCode();
-
-		int GetHashCode(int index);
-
-		/// <summary>
-		/// Create a request url for a request at index.
-		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		string GetRequestUrl(int index);
-
-		/// <summary>
-		/// Get use for request at index.
-		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
-		string GetUser(int index);
+		void SetParameter(string name, string value);
 
 		/// <summary>
 		/// Set a header to a value for this request.

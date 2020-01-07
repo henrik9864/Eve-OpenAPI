@@ -1,18 +1,13 @@
 ﻿using EveOpenApi.Api;
 using EveOpenApi.Api.Factories;
+using EveOpenApi.Authentication;
 using EveOpenApi.Interfaces;
 using EveOpenApi.Managers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace EveOpenApi
 {
@@ -65,22 +60,28 @@ namespace EveOpenApi
 			if (config is null)
 				throw new Exception("Configuration cannot be null");
 
-			HttpClient client = new HttpClient();
-			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+			IHttpHandler client = new HttpHandler();
+			IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions()
+			{
+				SizeLimit = 128, // Each ApiRequest is one in size
+			});
 
 			OpenApiDocument spec = SpecFromUrl(config.SpecURL);
 
+			IFactory<IApiRequest> apiRequestFactory = new ApiRequestFactory();
+			IFactory<ICacheControl> cacheControlFactory = new CacheControlFactory();
+
 			ITokenManager tokenManager = new TokenManager(client, config, login);
-			IResponseManager responseManager = new ResponseManager(client,config, login);
+			IResponseManager responseManager = new ResponseManager(client,config, login, cacheControlFactory);
 			ICacheManager cacheManager = new CacheManager(client, config, login, memoryCache, tokenManager, responseManager);
-			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager, spec);
+			IRequestManager requestManager = new RequestManager(client, config, login, cacheManager, apiRequestFactory, spec);
 			IEventManager eventManager = new EventManager(client, config, login, cacheManager, requestManager);
 
 			IFactory<IApiPath> pathFacotry = new ApiPathFactory(requestManager);
 			IFactory<IApiEventMethod> eventMethodFactory = new ApiEventMethodFactory(eventManager);
 			IFactory<IApiEventPath> eventPathFactory = new ApiEventPathFactory(eventMethodFactory);
 
-			return new API(login, config, pathFacotry, eventPathFactory);
+			return new API(login, config, pathFacotry, spec, eventPathFactory);
 		}
 
 		OpenApiDocument SpecFromUrl(string specUrl)

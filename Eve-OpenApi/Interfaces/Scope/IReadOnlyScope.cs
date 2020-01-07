@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EveOpenApi.Interfaces
+namespace EveOpenApi.Authentication
 {
 	/// <summary>
 	/// I know you can just cast to get around this but it servers as a warning

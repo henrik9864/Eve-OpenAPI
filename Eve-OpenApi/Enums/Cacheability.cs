@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EveOpenApi.Enums
 {
-	internal enum Cacheability
+	public enum Cacheability
 	{
 		Public = 0,
 		Private = 1,

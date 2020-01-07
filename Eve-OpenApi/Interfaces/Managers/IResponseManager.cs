@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using EveOpenApi.Api;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi.Managers
 {
@@ -11,7 +13,7 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">What request index to use.</param>
 		/// <returns></returns>
-		Task<IApiResponse> GetResponse(IApiRequest request, int index);
+		Task<IApiResponse> GetResponse(IApiRequest request);
 
 		/// <summary>
 		/// Get a response from the API of type.
@@ -20,6 +22,6 @@ namespace EveOpenApi.Managers
 		/// <param name="request"></param>
 		/// <param name="index">What request index to use.</param>
 		/// <returns></returns>
-		Task<IApiResponse<T>> GetResponse<T>(IApiRequest request, int index);
+		Task<IApiResponse<T>> GetResponse<T>(IApiRequest request);
 	}
 }

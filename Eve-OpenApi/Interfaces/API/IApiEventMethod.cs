@@ -16,6 +16,6 @@ namespace EveOpenApi.Api
 
 		event ApiUpdate OnChange;
 
-		event ApiUpdate OnUpdate;
+		event ApiUpdate OnExpire;
 	}
 }

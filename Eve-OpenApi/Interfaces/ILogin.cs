@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EveOpenApi.Interfaces
+namespace EveOpenApi.Authentication
 {
-	/// <summary>
-	/// Interface for obtaining access tokens for swagger API's
-	/// </summary>
-    public interface ILogin
+	public interface ILogin
 	{
-		IInterfaceSetup Setup { get; }
+		Task<IToken> GetToken(string user, IScope scope);
 
-		IToken this[string user, string scope] { get; }
+		IList<string> GetUsers();
 
-		bool TryGetToken(string user, IScope scope, out IToken token);
+		IList<IToken> GetTokens(string user);
 
-		//Task<IToken> AddToken(IScope scope);
+		void SaveToFile(string path, bool @override);
 
-		IToken GetToken(string user, IScope scope);
+		string ToJson();
 	}
 }

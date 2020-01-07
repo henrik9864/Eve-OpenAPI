@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EveOpenApi.Interfaces
+namespace EveOpenApi.Authentication
 {
     public interface IScope : IReadOnlyScope, IRemoveOnlyScope, IAddOnlyScope
 	{

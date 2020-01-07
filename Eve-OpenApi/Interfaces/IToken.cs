@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EveOpenApi.Api;
+using System;
 
-namespace EveOpenApi.Interfaces
+namespace EveOpenApi.Authentication
 {
-    public interface IToken
+	public interface IToken
 	{
-		string AccessToken { get; }
+		IScope Scope { get; }
 
-		IRemoveOnlyScope Scope { get; }
-
-		DateTime Expiery { get; }
-
-		Task RefreshToken(IScope subset);
-
-		Task<string> GetToken();
+		string GetToken();
 	}
 }

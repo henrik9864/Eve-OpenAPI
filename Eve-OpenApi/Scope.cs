@@ -1,11 +1,10 @@
-﻿using EveOpenApi.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
-namespace EveOpenApi
+namespace EveOpenApi.Authentication
 {
 	public class Scope : IScope, IEquatable<IScope>
 	{
@@ -80,6 +79,9 @@ namespace EveOpenApi
 
 		public static Scope Parse(string scope)
 		{
+			if (scope is null)
+				scope = "";
+
 			Scope esiScope = new Scope();
 			string[] scopes = scope.Split(' ');
 

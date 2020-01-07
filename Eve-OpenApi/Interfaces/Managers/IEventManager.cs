@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using EveOpenApi.Api;
 using EveOpenApi.Enums;
 using Microsoft.OpenApi.Models;
+[assembly: InternalsVisibleTo("Eve-OpenApi.Test")]
 
 namespace EveOpenApi.Managers
 {
@@ -22,6 +25,6 @@ namespace EveOpenApi.Managers
 		/// <param name="users"></param>
 		/// <param name="operation"></param>
 		/// <returns></returns>
-		IApiRequest GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
+		IEnumerable<IApiRequest> GetRequest(OperationType type, EventType eventType, string path, Dictionary<string, List<object>> parameters, List<string> users, OpenApiOperation operation);
 	}
 }

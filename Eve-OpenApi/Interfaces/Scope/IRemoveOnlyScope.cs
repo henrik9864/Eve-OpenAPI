@@ -1,4 +1,4 @@
-﻿namespace EveOpenApi.Interfaces
+﻿namespace EveOpenApi.Authentication
 {
 	public interface IRemoveOnlyScope : IReadOnlyScope
 	{

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EveOpenApi.Enums
 {
-    internal enum Validation
+    public enum Validation
 	{
 		MustRevalidate,
 		ProxyRevalidate,
