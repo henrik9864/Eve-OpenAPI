@@ -40,7 +40,7 @@ namespace EveOpenApi.Managers
 		/// <returns></returns>
 		async Task AddAuthToken(IApiRequest request)
 		{
-			if (string.IsNullOrEmpty(request.Scope))
+			if (string.IsNullOrEmpty(request.Scope) && !Config.AlwaysIncludeAuthHeader)
 				return;
 
 			if (Login is null && Config.AlwaysIncludeAuthHeader)
@@ -64,6 +64,7 @@ namespace EveOpenApi.Managers
 		/// <param name="token"></param>
 		void AddTokenLocation(IApiRequest request, string token)
 		{
+			Console.WriteLine(token);
 			switch (Config.TokenLocation)
 			{
 				case "header":
@@ -73,7 +74,7 @@ namespace EveOpenApi.Managers
 					request.SetParameter(Config.TokenName, token);
 					break;
 				default:
-					throw new Exception("Unknown access token location");
+					throw new Exception("Invalid token location");
 			}
 		}
 	}

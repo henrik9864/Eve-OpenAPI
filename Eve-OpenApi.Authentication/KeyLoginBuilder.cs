@@ -13,6 +13,11 @@ namespace EveOpenApi.Authentication
 	{
 		private List<KeyTokenSave> Tokens { get; set; }
 
+		public KeyLoginBuilder()
+		{
+			Tokens = new List<KeyTokenSave>();
+		}
+
 		public KeyLoginBuilder FromFile(string path)
 		{
 			string encryptedJson = File.ReadAllText(path);
