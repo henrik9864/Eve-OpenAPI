@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>Eve_OpenApi.Authentication</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.4.0</Version>
+    <Authors>Henrik</Authors>
+    <Company />
+    <Description>A library for authenticating with various API login options</Description>
   </PropertyGroup>
 
   <ItemGroup>
