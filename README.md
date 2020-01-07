@@ -6,9 +6,10 @@ Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br
 ```
 Install-Package Eve-OpenApi -Version 0.4.0
 ```
-Get AspNet core support: https://www.nuget.org/packages/Eve-OpenApi.DpendencyInjection/ <br />
+Optional
+Get SSO support: https://www.nuget.org/packages/Eve-OpenApi.Authentication/ <br />
 ```
-Install-Package Eve-OpenApi.DpendencyInjection -Version 0.4.0
+Install-Package Eve-OpenApi.Authentication -Version 0.4.0
 ```
 
 ## Setup Login
