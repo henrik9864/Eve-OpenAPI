@@ -20,6 +20,8 @@ namespace EveOpenApi.Authentication.Interfaces
 
 		Task<string> GetAuthUrl(IScope scope);
 
+		void SaveToFileEncrypted(string path, bool @override);
+
 		string ToEncrypted();
 	}
 }

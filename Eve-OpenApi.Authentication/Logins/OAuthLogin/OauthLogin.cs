@@ -62,6 +62,15 @@ namespace EveOpenApi.Authentication
 			if (File.Exists(path) && !@override)
 				throw new Exception("File already exists, enable override to override it.");
 
+			string json = ToJson();
+			File.WriteAllText(path, json);
+		}
+
+		public void SaveToFileEncrypted(string path, bool @override)
+		{
+			if (File.Exists(path) && !@override)
+				throw new Exception("File already exists, enable override to override it.");
+
 			string encryptedJson = ToEncrypted();
 			File.WriteAllText(path, encryptedJson);
 		}

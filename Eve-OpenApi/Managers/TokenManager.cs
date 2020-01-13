@@ -64,7 +64,6 @@ namespace EveOpenApi.Managers
 		/// <param name="token"></param>
 		void AddTokenLocation(IApiRequest request, string token)
 		{
-			Console.WriteLine(token);
 			switch (Config.TokenLocation)
 			{
 				case "header":
