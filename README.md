@@ -4,12 +4,12 @@ A library for accessing EVE online's ESI api.
 ## Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.4.0
+Install-Package Eve-OpenApi -Version 0.4.1
 ```
 Optional <br />
 Get SSO support: https://www.nuget.org/packages/Eve-OpenApi.Authentication/ <br />
 ```
-Install-Package Eve-OpenApi.Authentication -Version 0.4.0
+Install-Package Eve-OpenApi.Authentication -Version 0.4.1
 ```
 
 ## Setup Login
@@ -65,7 +65,8 @@ login.AddKey("<Key from API>", "<User>", "<Scope>");
 ```cs
 string ClientID = "your eve developer client id";
 string Callback = "client callback url";
-string SaveFile = "Path to savefile"
+string SaveFile = "Path to savefile";
+bool Override = True;
 
 // NOTE. Make sure you dont load encrypted files as raw text
 ILogin login = await new LoginBuilder()
@@ -74,7 +75,7 @@ ILogin login = await new LoginBuilder()
   .Build();
 
 // Will save and encrypted file with a refresh token for all added tokens.
-login.SaveToFileEncrypted(SaveFile, true);
+login.SaveToFileEncrypted(SaveFile, Override);
 ```
 ## Setup API
 #### Creating API config
