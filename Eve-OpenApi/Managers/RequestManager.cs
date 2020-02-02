@@ -76,7 +76,6 @@ namespace EveOpenApi.Managers
 			}
 
 			return requests;
-			//return new ApiRequest(baseUrl, path, scope, httpMethod, parsed);
 		}
 
 		/// <summary>
@@ -94,14 +93,13 @@ namespace EveOpenApi.Managers
 
 			foreach (var item in operation.Parameters)
 			{
-				bool found = parameters.TryGetValue(item.Name, out List<object> value);
-
-				if (found)
+				if (parameters.TryGetValue(item.Name, out List<object> value))
 				{
+					// Verify all all requests in a batch request has a parameter
 					if (maxLength == 1 && value.Count > maxLength)
 						maxLength = value.Count;
 					else if (maxLength > 1 && value.Count != maxLength)
-						throw new Exception("Every batch parameter must have 1 or the same count");
+						throw new Exception("Every batch request must have one parameter for all or one parameter for each.");
 
 					var kvp = new KeyValuePair<string, List<string>>(item.Name, value.Select(a => a.ToString()).ToList());
 					switch (item.In)
