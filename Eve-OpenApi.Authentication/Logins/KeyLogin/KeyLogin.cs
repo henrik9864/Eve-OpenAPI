@@ -1,4 +1,5 @@
 ﻿using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication.Structs;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -65,7 +66,7 @@ namespace EveOpenApi.Authentication
 				.SelectMany(x => x.Value.ConvertAll(a => new KeyTokenSave(a.GetToken(), x.Key, a.Scope.ScopeString)))
 				.ToList();
 
-			return JsonSerializer.Serialize(("Key", keys));
+			return JsonSerializer.Serialize(new LoginSave("Key", JsonSerializer.Serialize(keys)));
 		}
 	}
 }

@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Globalization;
+using EveOpenApi.Authentication.Structs;
 
 namespace EveOpenApi.Authentication
 {
@@ -78,20 +79,19 @@ namespace EveOpenApi.Authentication
 
 		public OAuthLoginBuilder FromFile(string path)
 		{
-			string encryptedJson = File.ReadAllText(path);
+			string json = File.ReadAllText(path);
 
-			return FromString(encryptedJson);
+			return FromString(json);
 		}
 
 		public OAuthLoginBuilder FromString(string json)
 		{
-			(string type, List<TokenSave> tokens) = JsonSerializer.Deserialize<(string, List<TokenSave>)>(json);
+			LoginSave save = JsonSerializer.Deserialize<LoginSave>(json);
 
-			if (type != "OAuth")
-				throw new Exception($"Unknown token types '{type}' expected type 'OAuth'");
+			if (save.Type != "OAuth")
+				throw new Exception($"Unknown token types '{save.Type}' expected type 'OAuth'");
 
-			Tokens = tokens;
-
+			Tokens = JsonSerializer.Deserialize<List<TokenSave>>(save.Data);
 			return this;
 		}
 

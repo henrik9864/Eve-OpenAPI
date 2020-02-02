@@ -1,5 +1,6 @@
 ﻿using EveOpenApi.Authentication.Factories;
 using EveOpenApi.Authentication.Interfaces;
+using EveOpenApi.Authentication.Structs;
 using EveOpenApi.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -27,13 +28,12 @@ namespace EveOpenApi.Authentication
 
 		public KeyLoginBuilder FromString(string json)
 		{
-			(string type, List<KeyTokenSave> tokens) = JsonSerializer.Deserialize<(string, List<KeyTokenSave>)>(json);
+			LoginSave save = JsonSerializer.Deserialize<LoginSave>(json);
 
-			if (type != "Key")
-				throw new Exception($"Unknown token types '{type}' expected type 'Key'");
+			if (save.Type != "Key")
+				throw new Exception($"Unknown token types '{save.Type}' expected type 'Key'");
 
-			Tokens = tokens;
-
+			Tokens = JsonSerializer.Deserialize<List<KeyTokenSave>>(save.Data);
 			return this;
 		}
 

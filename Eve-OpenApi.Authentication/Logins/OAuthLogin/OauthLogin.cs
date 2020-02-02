@@ -1,5 +1,6 @@
 ﻿using EveOpenApi.Authentication.Interfaces;
 using EveOpenApi.Authentication.Managers;
+using EveOpenApi.Authentication.Structs;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -82,7 +83,7 @@ namespace EveOpenApi.Authentication
 				.ToList()
 				.ConvertAll(a => new TokenSave(a.RefreshToken, a.Scope.ScopeString));
 
-			return JsonSerializer.Serialize(("OAuth", tokens));
+			return JsonSerializer.Serialize(new LoginSave("OAuth", JsonSerializer.Serialize(tokens)));
 		}
 
 		#endregion
