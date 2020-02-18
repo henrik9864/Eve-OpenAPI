@@ -4,12 +4,12 @@ A library for accessing EVE online's ESI api.
 ## Installation
 Get the latest version on nuget: https://www.nuget.org/packages/Eve-OpenApi/ <br />
 ```
-Install-Package Eve-OpenApi -Version 0.4.1
+Install-Package Eve-OpenApi -Version 0.4.2
 ```
 Optional <br />
 Get SSO support: https://www.nuget.org/packages/Eve-OpenApi.Authentication/ <br />
 ```
-Install-Package Eve-OpenApi.Authentication -Version 0.4.1
+Install-Package Eve-OpenApi.Authentication -Version 0.4.2
 ```
 
 ## Setup Login
