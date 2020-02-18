@@ -69,7 +69,7 @@ string SaveFile = "Path to savefile";
 bool Override = True;
 
 // NOTE. Make sure you dont load encrypted files as raw text
-ILogin login = await new LoginBuilder()
+IOauthLogin login = await new LoginBuilder().OAuth
   .WithCredentials(ClientID, Callback)
   .FromFileEncrypted(Savefile)
   .Build();
