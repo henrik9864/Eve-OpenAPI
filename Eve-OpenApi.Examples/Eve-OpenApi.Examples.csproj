@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Eve-OpenApi.Esi" Version="0.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Eve-OpenApi.Authentication\Eve-OpenApi.Authentication.csproj" />
     <ProjectReference Include="..\Eve-OpenApi\Eve-OpenApi.csproj" />
   </ItemGroup>

@@ -546,8 +546,8 @@ namespace EveOpenApi.Api
 		List<string> GetParameterNames(OpenApiOperation operation)
 		{
 			return operation.Parameters
-				.Select(x => x.Name)													// Select the names
-				.Where(x => x != "datasource" && x != "If-None-Match" && x != "token")	// Filter our parameters that are automaticly filled
+				.Select(x => x.Name)																							// Select the names
+				.Where(x => x != "datasource" && x != "If-None-Match" && x != "token" && x != "user_agent" && x != "page")		// Filter our parameters that are automaticly filled
 				.ToList();
 		}
 	}
