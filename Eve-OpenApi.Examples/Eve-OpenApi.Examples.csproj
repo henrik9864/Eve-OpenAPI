@@ -15,4 +15,10 @@
     <ProjectReference Include="..\Eve-OpenApi\Eve-OpenApi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Swagger\swagger.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

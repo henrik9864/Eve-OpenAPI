@@ -43,7 +43,8 @@ namespace EveOpenApi.Api
 			int hash = 17;
 			hash *= 23 + RequestUri.GetHashCode();
 			hash *= 23 + HttpMethod.GetHashCode();
-			hash *= 23 + User.GetHashCode();
+			if (!(User is null))
+				hash *= 23 + User.GetHashCode();
 
 			foreach (var item in Headers.ToList())
 			{

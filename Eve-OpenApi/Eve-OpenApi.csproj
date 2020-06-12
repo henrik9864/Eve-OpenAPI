@@ -6,7 +6,7 @@
     <RootNamespace>EveOpenApi</RootNamespace>
     <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
     <Authors>Henrik</Authors>
     <Company />
     <Product />

@@ -19,8 +19,9 @@ namespace EveOpenApi.Api
 		{
 			if (response.First().Length > 0 && response.First()[0] == '{')
 			{
-				dynamic jObj = JsonSerializer.Deserialize<dynamic>(base.FirstPage);
-				Error = jObj.error;
+				JsonElement jObj = JsonSerializer.Deserialize<JsonElement>(base.FirstPage);
+				if (jObj.TryGetProperty("error", out JsonElement err))
+					Error = err.GetString();
 			}
 			else
 			{
