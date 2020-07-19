@@ -36,7 +36,6 @@ namespace EveOpenApi.Authentication
 		{
 			IOauthToken token = userTokens[user].Find(a => a.Scope.IsSubset(scope));
 
-			Console.WriteLine($"{token?.Expires}, {DateTime.UtcNow}");
 			if (token?.Expires > DateTime.UtcNow)
 				token = await RefreshToken(token);
 
