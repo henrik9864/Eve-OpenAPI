@@ -23,7 +23,7 @@ namespace EveOpenApi.Authentication
 			AccessToken = token.AccessToken;
 			RefreshToken = token.RefreshToken;
 			Scope = scope;
-			Expires = DateTime.Now + new TimeSpan(0, 0, (int)token.Expires);
+			Expires = DateTime.UtcNow + new TimeSpan(0, 0, (int)token.Expires);
 			TokenType = token.TokenType;
 		}
 
