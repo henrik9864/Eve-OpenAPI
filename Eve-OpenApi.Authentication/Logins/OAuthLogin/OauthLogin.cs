@@ -106,9 +106,12 @@ namespace EveOpenApi.Authentication
 			return result.token;
 		}
 
-		public Task<IOauthToken> RefreshToken(IOauthToken token)
+		public async Task<IOauthToken> RefreshToken(IOauthToken token)
 		{
-			return AddToken(token.RefreshToken, token.Scope);
+			(IOauthToken newToken, string owner) = await tokenManager.RefreshToken(token.RefreshToken, token.Scope);
+			UpdateToken(owner, newToken);
+
+			return newToken;
 		}
 
 		public async Task<string> GetAuthUrl(IScope scope)
@@ -117,8 +120,16 @@ namespace EveOpenApi.Authentication
 
 			await Task.Factory.StartNew(async () =>
 			{
-				var response = await tokenManager.ListenForResponse(scope, authUrl);
-				AddToken(response.owner, response.token);
+				try
+				{
+					var response = await tokenManager.ListenForResponse(scope, authUrl);
+					AddToken(response.owner, response.token);
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+					throw e;
+				}
 			});
 
 			return authUrl.Url;
@@ -144,6 +155,14 @@ namespace EveOpenApi.Authentication
 			}
 
 			tokens.Add(token);
+		}
+
+		void UpdateToken(string owner, IOauthToken token)
+		{
+			List<IOauthToken> tokens = userTokens[owner];
+			int tokenIndex = tokens.FindIndex(x => x.RefreshToken == token.RefreshToken);
+
+			tokens[tokenIndex] = token;
 		}
 	}
 }
